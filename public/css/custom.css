@@ -1,0 +1,277 @@
+.sidebar-nav ul .sidebar-item .sidebar-link .feather {
+    flex: 0 0 1rem;
+}
+
+.sidebar-nav ul .sidebar-item .sidebar-link i {
+    flex: 0 0 2rem;
+    margin: 0 0 0 -3px;
+    /* font-size: 18px; */
+}
+
+.sidebar-nav ul .sidebar-item .sidebar-link {
+    opacity: 0.8;
+    padding-right: 20px;
+}
+
+.new-card {
+  width: 100%;
+  /*max-width: 300px;*/
+  min-width: 200px;
+  height: 250px;
+  background-color: white;
+  margin: 10px;
+  border-radius: 10px;
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.24);
+  border: 2px solid rgba(7, 7, 7, 0.12);
+  font-size: 16px;
+  transition: all 0.3s ease;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.green-icon-bg-color {
+  background: linear-gradient(90deg, #4bb429 0%, #318518 40%, rgba(0, 0, 0, 0.28) 60%);
+}
+
+.green-border-bottom {
+  border-bottom: 1px solid #79CD5E !important;
+}
+
+.maroon-icon-bg-color {
+  background:  linear-gradient(90deg, #C62128 0%, #A00000 40%, rgba(0, 0, 0, 0.28) 60%);
+}
+
+.maroon-border-bottom {
+  border-bottom: 1px solid #EA4F77 !important;
+}
+
+.purple-icon-bg-color {
+  background: linear-gradient(90deg, #8241B8 0%, #6C33A3 40%, rgba(0, 0, 0, 0.28) 60%);
+}
+
+.purple-border-bottom {
+  border-bottom: 1px solid #A16DDC !important;
+}
+
+.orange-icon-bg-color {
+  background:  linear-gradient(90deg, #EE5A24 0%, #EA2027 40%, rgba(0, 0, 0, 0.28) 60%);
+}
+
+.orange-border-bottom {
+  border-bottom: 1px solid #EA8958 !important;
+}
+
+.teal-icon-bg-color {
+  background: linear-gradient(90deg, #00BFB2 0%, #028090 40%, rgba(0, 0, 0, 0.28) 60%);
+}
+
+.teal-border-bottom {
+  border-bottom: 1px solid #43BFBD !important;
+}
+
+.yellow-icon-bg-color {
+  background: linear-gradient(90deg, #FCEE5B 0%, #F8E204 40%, rgba(0, 0, 0, 0.28) 60%);
+}
+
+.yellow-border-bottom {
+  border-bottom: 1px solid #FCEE5B !important;
+}
+
+.blue-icon-bg-color {
+  background: linear-gradient(90deg, #29539B 0%, #1E3B70 40%, rgba(0, 0, 0, 0.28) 60%);
+}
+
+.blue-border-bottom {
+  border-bottom: 1px solid #4fc3f7 !important;
+}
+
+.grey-icon-bg-color {
+  background: linear-gradient(90deg, #6c757d 0%, #343a40 40%, rgba(0, 0, 0, 0.28) 60%);
+}
+
+.grey-border-bottom {
+  border-bottom: 1px solid #6c757d !important;
+}
+
+.red-icon-bg-color {
+  background: linear-gradient(90deg, #fc5d5d 0%, #f31e45 40%, rgba(0, 0, 0, 0.28) 60%);
+}
+
+.red-border-bottom {
+  border-bottom: 1px solid #fc4b6c !important;
+}
+.new-icon {
+  margin: 0 auto;
+  width: 100%;
+  height: 80px;
+  max-width:80px;
+  border-radius: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  transition: all 0.8s ease;
+  background-position: 0px;
+  background-size: 200px;
+}
+
+.new-card .text {
+  width: 80%;
+  margin: 0 auto;
+  font-size: 13px;
+  text-align: center;
+  margin-top: 10px;
+  color: black;
+  font-weight: 200;
+  letter-spacing: 2px;
+  opacity: 0;
+  max-height:0;
+  transition: all 0.3s ease;
+}
+
+
+.new-card:hover {
+  height: 270px;
+}
+
+.page-breadcrumb .align-self-center .page-title {
+
+    margin-bottom : 5px !important;
+
+
+    }
+
+.new-card:hover .text {
+  transition: all 0.3s ease;
+  opacity: 1;
+  max-height:150px;
+}
+
+.new-card:hover .new-icon {
+  background-position: -120px;
+  transition: all 0.3s ease;
+  background-color: #4e4e4e;
+}
+
+.new-card:hover .new-icon i {
+  /* background: linear-gradient(90deg, black, black); */
+  background:#fff;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  opacity: 1;
+  transition: all 0.3s ease;
+}
+
+.font-size-xs {
+  font-size: smaller;
+}
+
+.required:after {
+    content:" *";
+    color: red;
+}
+
+/* 26A28E */
+.bg-mint {
+   background-color: #5BBCBA;
+}
+
+.bg-tea {
+    background-color: #7DADEA;
+}
+
+.text-tea {
+    color:#2D4EA1;
+}
+
+.text-brown {
+    color:#634E0C;
+}
+
+.hvr-cursor {
+    cursor: pointer;
+}
+
+.hide-menu-2 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+}
+
+/*
+Force table width to 100%
+*/
+table.table-fixedheader {
+  width: 100%;
+}
+/*
+Set table elements to block mode.  (Normally they are inline).
+This allows a responsive table, such as one where columns can be stacked
+if the display is narrow.
+*/
+table.table-fixedheader, table.table-fixedheader>thead, table.table-fixedheader>tbody, table.table-fixedheader>thead>tr, table.table-fixedheader>tbody>tr, table.table-fixedheader>thead>tr>th, table.table-fixedheader>tbody>td {
+  display: block;
+}
+table.table-fixedheader>thead>tr:after, table.table-fixedheader>tbody>tr:after {
+  content:' ';
+  display: block;
+  visibility: hidden;
+  clear: both;
+}
+/*
+When scrolling the table, actually it is only the tbody portion of the
+table that scrolls (not the entire table: we want the thead to remain
+fixed).  We must specify an explicit height for the tbody.  We include
+100px as a default, but it can be overridden elsewhere.
+
+Also, we force the scrollbar to always be displayed so that the usable
+width for the table contents doesn't change (such as becoming narrower
+when a scrollbar is visible and wider when it is not).
+*/
+table.table-fixedheader>tbody {
+  overflow-y: scroll;
+  height: 100px;
+
+}
+/*
+We really don't want to scroll the thead contents, but we want to force
+a scrollbar to be displayed anyway so that the usable width of the thead
+will exactly match the tbody.
+*/
+table.table-fixedheader>thead {
+  overflow-y: scroll;
+}
+/*
+For browsers that support it (webkit), we set the background color of
+the unneeded scrollbar in the thead to make it invisible.  (Setting
+visiblity: hidden defeats the purpose, as this alters the usable width
+of the thead.)
+*/
+table.table-fixedheader>thead::-webkit-scrollbar {
+  background-color: inherit;
+}
+
+
+table.table-fixedheader>thead>tr>th:after, table.table-fixedheader>tbody>tr>td:after {
+  content:' ';
+  display: table-cell;
+  visibility: hidden;
+  clear: both;
+}
+
+/*
+We want to set <th> and <td> elements to float left.
+We also must explicitly set the width for each column (both for the <th>
+and the <td>).  We set to 20% here a default placeholder, but it can be
+overridden elsewhere.
+*/
+
+table.table-fixedheader>thead tr th, table.table-fixedheader>tbody tr td {
+  float: left;
+  word-wrap:break-word;
+}
