@@ -8,15 +8,15 @@
     <meta name="keywords" content="wrappixel, admin dashboard, html css dashboard, web dashboard, bootstrap 5 admin, bootstrap 5, css3 dashboard, bootstrap 5 dashboard, nice admin bootstrap 5 dashboard, frontend, responsive bootstrap 5 admin template, ">
     <meta name="description" content="Nice is powerful and clean admin dashboard template, inpired from Google's Material Design">
     <meta name="robots" content="noindex,nofollow">
-    <title>Login - NiceAdmin</title>
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/images/favicon.png')}}">
+    <title>Login</title>
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/images/favcon.png')}}">
     <link href="{{ asset('css/style.min.css')}}" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="{{ asset('/assets/libs/sweetalert2/dist/sweetalert2.css') }}">
 </head>
 
 <style>
     .bg-landing-page {
-        background: url(../images/landing-page-v2.png) no-repeat center center;
+        background: url(../images/bg-2.png) no-repeat center center;
         background-size: cover;
     }
 

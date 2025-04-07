@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\Substation;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -21,11 +22,12 @@ class DatabaseSeeder extends Seeder
         //     'userCategory' => 'Admin'
         // ]);
 
-        User::factory()->create([
-            'name' => 'iRMC Staff User',
-            'email' => 'irmcstaff@example.com',
-            'userCategory' => 'iRMC Staff'
-        ]);
+        // User::factory()->create([
+        //     'name' => 'iRMC Staff User',
+        //     'email' => 'irmcstaff@example.com',
+        //     'userCategory' => 'iRMC Staff'
+        // ]);
         
+        Substation::factory()->count(10)->create();
     }
 }

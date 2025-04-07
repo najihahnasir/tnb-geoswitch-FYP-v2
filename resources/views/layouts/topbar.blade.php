@@ -137,7 +137,7 @@
                 <!-- ============================================================== -->
                 <!-- User profile and search -->
                 <!-- ============================================================== -->
-                <li class="nav-item dropdown">
+                {{-- <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle waves-effect waves-dark pro-pic" href="" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <img src="{{ asset('assets/images/users/2.jpg') }}" alt="user" class="rounded-circle" width="40">
                         <span class="ms-1 font-weight-medium d-none d-sm-inline-block">USER NAME <i data-feather="chevron-down" class="feather-sm"></i></span>
@@ -155,7 +155,41 @@
                         <div class="dropdown-divider"></div>
                         <a href="#" class="dropdown-item"><i data-feather="log-out" class="feather-sm text-danger me-1 ms-1"></i> Keluar</a>
                     </div>
+                </li> --}}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle waves-effect waves-dark pro-pic" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/images/users/default.jpg') }}" 
+                             alt="user" class="rounded-circle" width="40">
+                        <span class="ms-1 font-weight-medium d-none d-sm-inline-block">
+                            {{ Auth::user()->name }} 
+                            <i data-feather="chevron-down" class="feather-sm"></i>
+                        </span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end user-dd animated flipInY">
+                        <div class="d-flex no-block align-items-center p-3 bg-light-orange text-dark mb-2">
+                            <div class="">
+                                <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/images/users/default.jpg') }}" 
+                                     alt="user" class="rounded-circle" width="60">
+                            </div>
+                            <div class="ms-2">
+                                <h4 class="mb-0 text-dark">{{ Auth::user()->name }}</h4>
+                                <p class="mb-0">{{ Auth::user()->email }}</p>
+                            </div>
+                        </div>
+                        <a class="dropdown-item" href="{{ route('profile') }}">
+                            <i data-feather="user" class="feather-sm text-info me-1 ms-1"></i> Profil Saya
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="{{ route('logout') }}" class="dropdown-item"
+                           onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                            <i data-feather="log-out" class="feather-sm text-danger me-1 ms-1"></i> Keluar
+                        </a>
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                            @csrf
+                        </form>
+                    </div>
                 </li>
+                
                 <!-- ============================================================== -->
                 <!-- User profile and search -->
                 <!-- ============================================================== -->
