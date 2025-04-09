@@ -14,7 +14,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call(SubstationSeeder::class);
+        $this->call([
+            SubstationSeeder::class,
+            SwitchgearSeeder::class,
+            SensorSeeder::class,
+            SensorMeasurementSeeder::class,
+        ]);
 
         // User::factory(10)->create();
 
