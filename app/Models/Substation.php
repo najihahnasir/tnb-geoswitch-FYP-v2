@@ -9,5 +9,12 @@ class Substation extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'latitude', 'longitude', 'description'];
+    protected $fillable = ['substation_name', 'code', 'latitude', 'longitude', 'description', 'subtation_location',
+    'status', 'type'];
+
+    public function switchgears()
+    {
+        return $this->hasMany(Switchgear::class);
+    }
+
 }

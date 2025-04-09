@@ -30,6 +30,6 @@ class DatabaseSeeder extends Seeder
         //     'userCategory' => 'iRMC Staff'
         // ]);
         
-        Substation::factory()->count(10)->create();
+        // Substation::factory()->count(10)->create();
     }
 }
