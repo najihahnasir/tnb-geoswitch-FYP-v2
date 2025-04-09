@@ -120,18 +120,21 @@
 
 <!-- Dashboard Content -->
 <div class="dashboard-content">
-    <h3>Substation Map</h3>
+    <h3 style="margin-bottom: 10px;">Substation Map</h3>
 
-    <!-- Dropdown Filter -->
-    <select id="substationFilter" style="margin-bottom: 15px; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
-        <option value="all">All Substations</option>
-        @foreach ($substations as $station)
-            <option value="{{ $station['name'] }}">{{ $station['name'] }}</option>
-        @endforeach
-    </select>
+    <div style="margin-bottom: 15px;">
+        <label for="substationFilter"><strong>Filter:</strong></label>
+        <select id="substationFilter" style="padding: 8px; border-radius: 6px;">
+            <option value="all">All Substations</option>
+            @foreach ($substations as $s)
+                <option value="{{ $s->substation_name }}">{{ $s->substation_name }}</option>
+            @endforeach
+        </select>
+    </div>
 
-    <!-- Leaflet Map Container -->
-    <div id="map" style="height: 500px; width: 100%; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); margin-bottom: 30px;"></div>
+    <div id="map"
+        style="height: 500px; width: 100%; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); margin-bottom: 30px;">
+    </div>
 
     <!-- Analytics Charts -->
     <div class="chart-container">
@@ -256,6 +259,9 @@
             }
         }
     });
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 500);
 </script>
 
 @endsection
