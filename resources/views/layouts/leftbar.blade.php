@@ -44,7 +44,7 @@
 
                 <!-- Example of a single menu item -->
                 <li class="sidebar-item">
-                    <a class="sidebar-link waves-effect waves-dark" href="#" aria-expanded="false">
+                    <a class="sidebar-link waves-effect waves-dark"  href="{{ route('datasets.upload.form') }}" aria-expanded="false">
                         <i class="ri-folder-shared-line"></i>
                         <span class="hide-menu">Upload Dataset </span>
                     </a>

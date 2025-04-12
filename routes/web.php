@@ -10,12 +10,15 @@ use App\Http\Controllers\ResearchGrantController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DatasetController;
 
 
 // Public Routes
 Route::get('/', function () {
     return view('welcome');
 });
+Route::get('/datasets/upload', [DatasetController::class, 'showUploadForm'])->name('datasets.upload.form');
+Route::post('/datasets/upload', [DatasetController::class, 'handleUpload'])->name('datasets.upload');
 Route::resource('academicians', AcademicianController::class);
 
 // Authentication Routes
