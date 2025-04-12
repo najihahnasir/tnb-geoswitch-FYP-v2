@@ -12,6 +12,14 @@
 />
 @endsection
 
+<!--Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+<!--MarkerCluster CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+
 @section('content')
 <style>
     /**
@@ -89,41 +97,12 @@
 </style>
 
 <h2>GeoSwitch Dashboard</h2>
-<!-- Leaflet CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-<!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-{{-- <!-- Google Maps Container with Complex Markers -->
-<gmp-map center="-33.9,151.2" zoom="10" map-id="DEMO_MAP_ID" style="height: 400px; width: 100%; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-    <gmp-advanced-marker position="-33.890542, 151.274856" title="Bondi Beach">
-        <img class="flag-icon"
-             src="https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"/>
-    </gmp-advanced-marker>
-    <gmp-advanced-marker position="-33.923036, 151.259052" title="Coogee Beach">
-        <img class="flag-icon"
-             src="https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"/>
-    </gmp-advanced-marker>
-    <gmp-advanced-marker position="-34.028249, 151.157507" title="Cronulla Beach">
-        <img class="flag-icon"
-             src="https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"/>
-    </gmp-advanced-marker>
-    <gmp-advanced-marker position="-33.800101, 151.287478" title="Manly Beach">
-        <img class="flag-icon"
-             src="https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"/>
-    </gmp-advanced-marker>
-    <gmp-advanced-marker position="-33.950198, 151.259302" title="Maroubra Beach">
-        <img class="flag-icon"
-             src="https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"/>
-    </gmp-advanced-marker>
-</gmp-map> --}}
-
 <!-- Dashboard Content -->
 <div class="dashboard-content">
     <h3 style="margin-bottom: 10px;">Substation Map</h3>
 
     <div style="margin-bottom: 15px;">
-        <label for="substationFilter"><strong>Filter:</strong></label>
+        <label for="substationFilter"><strong>Substation:</strong></label>
         <select id="substationFilter" style="padding: 8px; border-radius: 6px;">
             <option value="all">All Substations</option>
             @foreach ($substations as $s)
@@ -131,7 +110,17 @@
             @endforeach
         </select>
     </div>
-
+    
+    <div style="margin-bottom: 15px;">
+        <strong>Filter by Sensor Type:</strong><br>
+        @foreach(['Partial Discharge', 'SF6', 'Thermal', 'DGA'] as $type)
+            <label style="margin-right: 10px;">
+                <input type="checkbox" class="sensor-filter" value="{{ $type }}" checked>
+                {{ $type }}
+            </label>
+        @endforeach
+    </div>
+    
     <div id="map"
         style="height: 500px; width: 100%; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); margin-bottom: 30px;">
     </div>
@@ -150,10 +139,16 @@
         <canvas id="sensorPerformanceChart"></canvas>
     </div>
 </div>
+@endsection
 
-
+@push('after-scripts')
+<!--Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<!--MarkerCluster JS (must come AFTER Leaflet JS) -->
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <!-- Include Chart.js for Analytics -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
     // Example Chart.js Configuration
     const sensorConditionChart = new Chart(document.getElementById('sensorConditionChart'), {
@@ -215,10 +210,8 @@
         }
     });
 </script>
-<!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-<script>
+{{-- <script>
     var map = L.map('map').setView([3.1390, 101.6869], 11);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -262,6 +255,92 @@
     setTimeout(() => {
         map.invalidateSize();
     }, 500);
-</script>
+</script> --}}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var map = L.map('map').setView([3.1390, 101.6869], 11);
 
-@endsection
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        const substations = @json($substations);
+        const sensors = @json($sensors);
+        console.log(sensors);
+
+
+        console.log('Loaded sensors:', sensors); 
+        // var sensors = @json($sensors);
+        // let sensorMarkers = [];
+
+        
+        let markerCluster = L.markerClusterGroup(); // ✅ initialize clustering
+
+        function renderSensorMarkers(substationName, filteredTypes) {
+        markerCluster.clearLayers(); // remove existing clustered markers
+        
+        if (map.hasLayer(markerCluster)) {
+            map.removeLayer(markerCluster);
+        }
+        sensors.forEach(sensor => {
+            const substation = sensor.switchgear.substation;
+            const type = sensor.type;
+
+            const matchSubstation = substationName === 'all' || substation.substation_name === substationName;
+            const matchType = filteredTypes.length === 0 || filteredTypes.includes(type);
+
+            if (matchSubstation && matchType) {
+                const lat = substation.latitude;
+                const lng = substation.longitude;
+
+                const marker = L.marker([lat, lng]).bindPopup(`
+                    <b>${sensor.tag}</b><br>
+                    Type: ${type}<br>
+                    Panel: ${sensor.switchgear.panel}<br>
+                    Substation: ${substation.substation_name}
+                `);
+
+                markerCluster.addLayer(marker); // ✅ add marker to cluster group
+            }
+        });
+
+        map.addLayer(markerCluster); // ✅ show cluster on map
+
+        if (markerCluster.getLayers().length > 0) {
+            map.fitBounds(markerCluster.getBounds());
+        } else {
+            map.setView([3.1390, 101.6869], 11); // fallback to default view
+        }
+    }
+
+    // Get all selected sensor types
+    function getSelectedTypes() {
+        return Array.from(document.querySelectorAll('.sensor-filter:checked'))
+                    .map(cb => cb.value);
+    }
+
+    // Initial marker load
+    renderSensorMarkers('all', getSelectedTypes());
+
+    // Substation dropdown filter
+    document.getElementById('substationFilter').addEventListener('change', function () {
+        const selectedSubstation = this.value;
+        renderSensorMarkers(selectedSubstation, getSelectedTypes());
+    });
+
+    // Sensor type checkbox filter
+    document.querySelectorAll('.sensor-filter').forEach(cb => {
+        cb.addEventListener('change', function () {
+            const selectedSubstation = document.getElementById('substationFilter').value;
+            renderSensorMarkers(selectedSubstation, getSelectedTypes());
+        });
+    });
+
+    // Fix initial map rendering glitch
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 500);
+});
+</script>
+@endpush

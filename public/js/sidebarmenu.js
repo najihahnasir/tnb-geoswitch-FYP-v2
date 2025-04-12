@@ -57,12 +57,23 @@ $(function() {
         e.preventDefault();
     });
     
+    // // Auto scroll to the active nav
+    // if ( $(window).width() > 768 || window.Touch) { 
+    //      $('.scroll-sidebar').animate({
+    //         scrollTop: $("#sidebarnav .sidebar-item.selected").offset().top -250
+    //     }, 500);
+    // } 
     // Auto scroll to the active nav
-    if ( $(window).width() > 768 || window.Touch) { 
-         $('.scroll-sidebar').animate({
-            scrollTop: $("#sidebarnav .sidebar-item.selected").offset().top -250
-        }, 500);
-    } 
+    if ($(window).width() > 768 || window.Touch) {
+        const target = $("#sidebarnav .sidebar-item.selected");
+
+        if (target.length > 0) {
+            $('.scroll-sidebar').animate({
+                scrollTop: target.offset().top - 250
+            }, 500);
+        }
+    }
+
    
 });
 

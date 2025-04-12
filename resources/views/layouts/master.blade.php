@@ -20,7 +20,7 @@
     <link rel="stylesheet" type="text/css" href="{{ asset('/assets/libs/sweetalert2/dist/sweetalert2.css') }}">
 
     <!-- Custom CSS -->
-     <link href="{{ asset('css/style.css')}}" rel="stylesheet">
+    <link href="{{ asset('css/style.css')}}" rel="stylesheet">
     <link href="{{ asset('css/custom.css')}}" rel="stylesheet">
     
 

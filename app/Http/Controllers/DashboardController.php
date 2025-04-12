@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Substation;
+use App\Models\Sensor;
 use App\Models\Academician;
 use App\Models\ResearchGrant;
 use App\Models\Milestone;
@@ -14,8 +15,9 @@ class DashboardController extends Controller
     public function dashboard()
     {
         $substations = Substation::select('id', 'substation_name', 'substation_location', 'latitude', 'longitude')->get();
+        $sensors = Sensor::with('switchgear.substation')->get();
         // dd($substations);
-        return view('dashboard', compact('substations'));
+        return view('dashboard', compact('substations','sensors'));
     }
 
     public function index () 
