@@ -31,6 +31,60 @@ class SwitchgearSeeder extends Seeder
                 'compartment' => 'Main busbar',
                 'created_at' => now(),
                 'updated_at' => now()
+            ],
+            [
+                'substation_id' => 5, 
+                'name' => 'Feeder 4P5',
+                'lineup' => '33kV Lineup',
+                'panel' => 'Feeder 4P5',
+                'compartment' => 'CB - Top',
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'substation_id' => 5,
+                'name' => 'Feeder 2P5',
+                'lineup' => '33kV Lineup',
+                'panel' => 'Feeder 2P5',
+                'compartment' => 'Main busbar',
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'substation_id' => 6, 
+                'name' => 'Feeder 4P5',
+                'lineup' => '33kV Lineup',
+                'panel' => 'Feeder 4P5',
+                'compartment' => 'CB - Top',
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'substation_id' => 6,
+                'name' => 'Feeder 2P5',
+                'lineup' => '33kV Lineup',
+                'panel' => 'Feeder 2P5',
+                'compartment' => 'Main busbar',
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'substation_id' => 7, 
+                'name' => 'Feeder 4P5',
+                'lineup' => '33kV Lineup',
+                'panel' => 'Feeder 4P5',
+                'compartment' => 'CB - Top',
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'substation_id' => 7,
+                'name' => 'Feeder 2P5',
+                'lineup' => '33kV Lineup',
+                'panel' => 'Feeder 2P5',
+                'compartment' => 'Main busbar',
+                'created_at' => now(),
+                'updated_at' => now()
             ]
         ];
 

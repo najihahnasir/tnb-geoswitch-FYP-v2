@@ -17,5 +17,11 @@ class Sensor extends Model
     {
         return $this->hasMany(SensorMeasurement::class);
     }
+    
+    public function latestMeasurement()
+    {
+        return $this->hasOne(SensorMeasurement::class)->latestOfMany();
+    }
+
 
 }

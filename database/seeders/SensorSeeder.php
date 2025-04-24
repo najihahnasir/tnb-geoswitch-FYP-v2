@@ -22,9 +22,23 @@ class SensorSeeder extends Seeder
                 'updated_at' => now()
             ],
             [
+                'switchgear_id' => 1,
+                'type' => 'Thermal',
+                'tag' => 'S01L02P04MBUPDCP',
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
                 'switchgear_id' => 2,
                 'type' => 'Partial Discharge',
-                'tag' => 'S01L02P04MBUPDCP',
+                'tag' => 'S01L02P06ERPLLL',
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'switchgear_id' => 2,
+                'type' => 'Thermal',
+                'tag' => 'S01L02P04MBUPPRP',
                 'created_at' => now(),
                 'updated_at' => now()
             ]

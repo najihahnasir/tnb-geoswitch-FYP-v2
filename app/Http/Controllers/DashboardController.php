@@ -15,8 +15,8 @@ class DashboardController extends Controller
     public function dashboard()
     {
         $substations = Substation::select('id', 'substation_name', 'substation_location', 'latitude', 'longitude')->get();
-        $sensors = Sensor::with('switchgear.substation')->get();
-        // dd($substations);
+        // $sensors = Sensor::with('switchgear.substation')->get();
+        $sensors = Sensor::with(['switchgear.substation', 'latestMeasurement'])->get();        // dd($substations);
         return view('dashboard', compact('substations','sensors'));
     }
 
