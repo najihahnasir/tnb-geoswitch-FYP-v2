@@ -25,13 +25,11 @@ Route::resource('academicians', AcademicianController::class);
 // Route::post('/reports/sensor-status', [ReportController::class, 'sensorStatusSummary']);
 
 Route::prefix('reports')->group(function () {
-    Route::get('/', [ReportController::class, 'index'])->name('reports.index'); // Main report view page
-    Route::post('/sensor-status', [ReportController::class, 'sensorStatusSummary'])->name('reports.sensor-status'); // Process filter form
-
-    // Export routes
-    Route::get('/export/pdf', [ReportController::class, 'exportPdf'])->name('reports.export.pdf');
-    Route::get('/export/excel', [ReportController::class, 'exportExcel'])->name('reports.export.excel');
-    Route::get('/export/csv', [ReportController::class, 'exportCsv'])->name('reports.export.csv');
+    Route::get('/', [ReportController::class, 'index'])->name('reports.index');
+    
+    // Single endpoint for all report actions
+    Route::match(['get', 'post'], '/sensor-status', [ReportController::class, 'sensorStatusSummary'])
+        ->name('reports.sensor-status');
 });
 
 

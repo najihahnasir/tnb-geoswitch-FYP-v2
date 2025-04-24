@@ -8,7 +8,7 @@
         <nav class="sidebar-nav">
             <ul id="sidebarnav">
                 <li class="sidebar-item">
-                    <a class="sidebar-link waves-effect waves-dark" href="#" aria-expanded="false">
+                    <a class="sidebar-link waves-effect waves-dark" href="{{ route('dashboard') }}" aria-expanded="false">
                         <i class="mdi mdi-comment-processing-outline"></i>
                         <span class="hide-menu">Dashboard </span>
                     </a>
@@ -18,7 +18,7 @@
                 <li class="sidebar-item">
                     <a class="sidebar-link has-arrow waves-effect waves-dark" href="javascript:void(0)" aria-expanded="false">
                         <i class="ri-draft-line"></i>
-                        <span class="hide-menu"> View Report </span>
+                        <span class="hide-menu"> Report</span>
                     </a>
                     {{-- <ul aria-expanded="false" class="collapse first-level">
                         <li class="sidebar-item">
@@ -42,8 +42,14 @@
                     </ul> --}}
                     <ul aria-expanded="false" class="collapse first-level">
                         <li class="sidebar-item">
+                            <a href="{{ route('reports.index') }}" class="sidebar-link">
+                                <i class="mdi mdi-eye"></i>
+                                <span class="hide-menu"> View Reports </span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
                             <a href="{{ route('reports.sensor-status') }}" class="sidebar-link" target="_blank">
-                                <i class="mdi mdi-file-pdf"></i>
+                                <i class="mdi mdi-file-pdf-box"></i>
                                 <span class="hide-menu"> Sensor Status Summary </span>
                             </a>
                         </li>
@@ -55,8 +61,15 @@
                         </li>
                         <li class="sidebar-item">
                             <a href="#" class="sidebar-link" target="_blank">
-                                <i class="mdi mdi-bell-alert"></i>
+                                <i class="mdi mdi-comment-processing-outline"></i>
+                                {{-- <i class="mdi mdi-bell-alert"></i> --}}
                                 <span class="hide-menu"> Critical Alarms Report </span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="#" class="sidebar-link" target="_blank">
+                                <i class="mdi mdi-file-export"></i>
+                                <span class="hide-menu"> Sensor History Export </span>
                             </a>
                         </li>
                     </ul>

@@ -41,12 +41,19 @@
             <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Apply Filters</button>
         </div>
     </form>
-
-    <!-- Export Buttons -->
     <div class="flex justify-end gap-4 mb-4">
-        <a href="{{ route('reports.export.pdf', request()->query()) }}" class="btn btn-sm btn-danger">Download PDF</a>
-        <a href="{{ route('reports.export.excel', request()->query()) }}" class="btn btn-sm btn-success">Export Excel</a>
-        <a href="{{ route('reports.export.csv', request()->query()) }}" class="btn btn-sm btn-secondary">Export CSV</a>
+        <a href="{{ route('reports.sensor-status', array_merge(request()->query(), ['export' => 'pdf'])) }}" 
+           class="btn btn-sm btn-danger">
+           Download PDF
+        </a>
+        <a href="{{ route('reports.sensor-status', array_merge(request()->query(), ['export' => 'excel'])) }}" 
+           class="btn btn-sm btn-success">
+           Export Excel
+        </a>
+        <a href="{{ route('reports.sensor-status', array_merge(request()->query(), ['export' => 'csv'])) }}" 
+           class="btn btn-sm btn-secondary">
+           Export CSV
+        </a>
     </div>
 
     <!-- Data Table -->
@@ -69,10 +76,12 @@
                         <td>{{ $index + 1 }}</td>
                         <td>{{ $sensor->tag ?? '-' }}</td>
                         <td>{{ $sensor->type ?? '-' }}</td>
-                        <td>{{ $sensor->latest_measurement->status ?? '-' }}</td>
-                        <td>{{ $sensor->switchgear->substation->substation_name ?? '-' }}</td>
-                        <td>{{ $sensor->switchgear->panel ?? '-' }}</td>
-                        <td>{{ $sensor->latest_measurement->created_at->format('Y-m-d H:i') ?? '-' }}</td>
+                        <td>{{ optional($sensor->latest_measurement)->status ?? '-' }}</td>
+                        <td>{{ optional($sensor->switchgear->substation)->substation_name ?? '-' }}</td>
+                        <td>{{ optional($sensor->switchgear)->panel ?? '-' }}</td>
+                        <td>
+                            {{ optional(optional($sensor->latest_measurement)->created_at)->format('Y-m-d H:i') ?? '-' }}
+                        </td>
                     </tr>
                 @empty
                     <tr>
@@ -81,6 +90,10 @@
                 @endforelse
             </tbody>
         </table>
+        <!-- Pagination Links -->
+        <div class="mt-4">
+            {{ $sensors->appends(request()->query())->links() }}
+        </div>
     </div>
 </div>
 @endsection
