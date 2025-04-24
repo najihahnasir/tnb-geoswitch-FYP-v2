@@ -20,7 +20,7 @@
                         <i class="ri-draft-line"></i>
                         <span class="hide-menu"> View Report </span>
                     </a>
-                    <ul aria-expanded="false" class="collapse first-level">
+                    {{-- <ul aria-expanded="false" class="collapse first-level">
                         <li class="sidebar-item">
                             <a href="{{ route('academicians.index') }}" class="sidebar-link">
                                 <i class="mdi mdi-adjust"></i>
@@ -33,12 +33,32 @@
                                 <span class="hide-menu"> Export Report </span>
                             </a>
                         </li>
-                        {{-- <li class="sidebar-item">
+                        <li class="sidebar-item">
                             <a href="#" class="sidebar-link">
                                 <i class="mdi mdi-adjust"></i>
                                 <span class="hide-menu"> Pembatalan Pendaftaran </span>
                             </a>
-                        </li> --}}
+                        </li>
+                    </ul> --}}
+                    <ul aria-expanded="false" class="collapse first-level">
+                        <li class="sidebar-item">
+                            <a href="{{ route('reports.sensor-status') }}" class="sidebar-link" target="_blank">
+                                <i class="mdi mdi-file-pdf"></i>
+                                <span class="hide-menu"> Sensor Status Summary </span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="#" class="sidebar-link" target="_blank">
+                                <i class="mdi mdi-hospital-building"></i>
+                                <span class="hide-menu"> Substation Health Report </span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="#" class="sidebar-link" target="_blank">
+                                <i class="mdi mdi-bell-alert"></i>
+                                <span class="hide-menu"> Critical Alarms Report </span>
+                            </a>
+                        </li>
                     </ul>
                 </li>
 

@@ -11,6 +11,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DatasetController;
+use App\Http\Controllers\ReportController;
 
 
 // Public Routes
@@ -20,6 +21,21 @@ Route::get('/', function () {
 Route::get('/datasets/upload', [DatasetController::class, 'showUploadForm'])->name('datasets.upload.form');
 Route::post('/datasets/upload', [DatasetController::class, 'handleUpload'])->name('datasets.upload');
 Route::resource('academicians', AcademicianController::class);
+// Route::get('/reports/sensor-status-summary', [ReportController::class, 'sensorStatusSummary'])->name('reports.sensor-status');
+// Route::post('/reports/sensor-status', [ReportController::class, 'sensorStatusSummary']);
+
+Route::prefix('reports')->group(function () {
+    Route::get('/', [ReportController::class, 'index'])->name('reports.index'); // Main report view page
+    Route::post('/sensor-status', [ReportController::class, 'sensorStatusSummary'])->name('reports.sensor-status'); // Process filter form
+
+    // Export routes
+    Route::get('/export/pdf', [ReportController::class, 'exportPdf'])->name('reports.export.pdf');
+    Route::get('/export/excel', [ReportController::class, 'exportExcel'])->name('reports.export.excel');
+    Route::get('/export/csv', [ReportController::class, 'exportCsv'])->name('reports.export.csv');
+});
+
+
+
 
 // Authentication Routes
 Auth::routes(); 
