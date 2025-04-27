@@ -528,29 +528,7 @@
 
     function createSubstationMarker(lat, lng, name, location, sensorCount) {
         return L.marker([lat, lng], {
-            icon: L.divIcon({
-                html: `
-                    <div class="substation-marker" style="
-                        background: #3498db;
-                        width: 28px;
-                        height: 28px;
-                        border-radius: 4px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        color: white;
-                        font-weight: bold;
-                        border: 2px solid white;
-                        box-shadow: 0 0 5px rgba(0,0,0,0.3);
-                    ">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                        </svg>
-                    </div>
-                `,
-                className: '',
-                iconSize: [30, 30]
-            })
+            icon: new L.Icon.Default()
         }).bindPopup(`<b>${name}</b><br>${location}<br><small>Sensors: ${sensorCount}</small>`);
     }
 

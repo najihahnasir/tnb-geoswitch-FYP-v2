@@ -21,7 +21,7 @@ class ReportController extends Controller
     // }
     public function index(Request $request)
     {
-        $substations = Substation::pluck('substation_name', 'id');
+        $substations = Substation::all();
         $sensorTypes = Sensor::distinct()->pluck('type');
         
         $query = Sensor::with(['switchgear.substation', 'latestMeasurement' => function($q) {
@@ -51,11 +51,17 @@ class ReportController extends Controller
         $sensors = $query->get();
 
         // return view('reports.index', compact('substations', 'sensorTypes', 'sensors'));
+        // return view('reports.index', [
+        //     'sensors' => $query->paginate(20), // Added pagination
+        //     'substations' => Substation::pluck('substation_name', 'id'),
+        //     'sensorTypes' => Sensor::distinct()->pluck('type'),
+        //     'filters' => $request->all()
+        // ]);
         return view('reports.index', [
-            'sensors' => $query->paginate(20), // Added pagination
-            'substations' => Substation::pluck('substation_name', 'id'),
-            'sensorTypes' => Sensor::distinct()->pluck('type'),
-            'filters' => $request->all()
+            'sensors' => $query->paginate(20),
+            'substations' => $substations,
+            'sensorTypes' => $sensorTypes,
+            'filters' => $request->all(),
         ]);
     }
 
