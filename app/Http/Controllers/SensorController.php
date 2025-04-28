@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sensor;
+use App\Models\SensorStatusHistory;
 use Illuminate\Http\Request;
 
 class SensorController extends Controller
@@ -12,7 +13,8 @@ class SensorController extends Controller
      */
     public function index()
     {
-        //
+        $sensors = Sensor::with('switchgear.substation')->paginate(20);
+        return view('sensors.manage', compact('sensors'));
     }
 
     /**
@@ -52,8 +54,25 @@ class SensorController extends Controller
      */
     public function update(Request $request, Sensor $sensor)
     {
-        //
+        $request->validate([
+            'status' => 'required|in:online,offline,repairing'
+        ]);
+    
+        // Record the status change
+        SensorStatusHistory::create([
+            'sensor_id' => $sensor->id,
+            'user_id' => Auth::id(),
+            'old_status' => $sensor->status,
+            'new_status' => $request->status,
+        ]);
+    
+        // Update sensor status
+        $sensor->status = $request->status;
+        $sensor->save();
+    
+        return redirect()->back()->with('success', 'Sensor status updated successfully.');
     }
+    
 
     /**
      * Remove the specified resource from storage.

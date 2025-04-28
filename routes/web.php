@@ -12,6 +12,9 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DatasetController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SensorController;
+
+
 
 
 // Public Routes
@@ -31,6 +34,10 @@ Route::prefix('reports')->group(function () {
     Route::match(['get', 'post'], '/sensor-status', [ReportController::class, 'sensorStatusSummary'])
         ->name('reports.sensor-status');
 });
+Route::resource('sensors', SensorController::class)->middleware('auth');
+
+// Route::get('/sensors/manage', [\App\Http\Controllers\SensorController::class, 'manage'])->name('sensors.manage');
+// Route::post('/sensors/update-status/{sensor}', [\App\Http\Controllers\SensorController::class, 'updateStatus'])->name('sensors.updateStatus');
 
 
 

@@ -20,23 +20,27 @@
                         <i class="ri-draft-line"></i>
                         <span class="hide-menu">Substation</span>
                     </a>
+
                     {{-- <ul aria-expanded="false" class="collapse first-level">
                         <li class="sidebar-item">
-                            <a href="{{ route('academicians.index') }}" class="sidebar-link">
-                                <i class="mdi mdi-adjust"></i>
-                                <span class="hide-menu"> Download Report </span>
+                            <a href="{{ route('reports.index') }}" class="sidebar-link">
+                                <i class="mdi mdi-eye"></i>
+                                <span class="hide-menu"> Sensor Status Summary </span>
                             </a>
                         </li>
+
                         <li class="sidebar-item">
-                            <a href="#" class="sidebar-link">
-                                <i class="mdi mdi-adjust"></i>
-                                <span class="hide-menu"> Export Report </span>
+                            <a href="#" class="sidebar-link" target="_blank">
+                                <i class="mdi mdi-hospital-building"></i>
+                                <span class="hide-menu"> Substation Health Status</span>
                             </a>
                         </li>
+                        
                         <li class="sidebar-item">
-                            <a href="#" class="sidebar-link">
-                                <i class="mdi mdi-adjust"></i>
-                                <span class="hide-menu"> Pembatalan Pendaftaran </span>
+                            <a href="#" class="sidebar-link" target="_blank">
+                                <i class="mdi mdi-comment-processing-outline"></i>
+                                <i class="mdi mdi-bell-alert"></i>
+                                <span class="hide-menu"> Critical Alarms List </span>
                             </a>
                         </li>
                     </ul> --}}
@@ -44,26 +48,13 @@
                         <li class="sidebar-item">
                             <a href="{{ route('reports.index') }}" class="sidebar-link">
                                 <i class="mdi mdi-eye"></i>
-                                <span class="hide-menu"> Sensor Status Summary </span>
+                                <span class="hide-menu"> Substation Summary </span>
                             </a>
                         </li>
-                        {{-- <li class="sidebar-item">
-                            <a href="{{ route('reports.sensor-status') }}" class="sidebar-link" target="_blank">
-                                <i class="mdi mdi-file-pdf-box"></i>
-                                <span class="hide-menu"> Sensor Status Summary </span>
-                            </a>
-                        </li> --}}
                         <li class="sidebar-item">
                             <a href="#" class="sidebar-link" target="_blank">
                                 <i class="mdi mdi-hospital-building"></i>
-                                <span class="hide-menu"> Substation Health Status</span>
-                            </a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="#" class="sidebar-link" target="_blank">
-                                <i class="mdi mdi-comment-processing-outline"></i>
-                                {{-- <i class="mdi mdi-bell-alert"></i> --}}
-                                <span class="hide-menu"> Critical Alarms List </span>
+                                <span class="hide-menu"> Register New Substation</span>
                             </a>
                         </li>
                     </ul>
@@ -73,17 +64,17 @@
                 <li class="sidebar-item">
                     <a class="sidebar-link waves-effect waves-dark has-arrow" href="#" aria-expanded="false" data-bs-toggle="collapse" data-bs-target="#sensorSummaryMenu">
                         <i class="ri-folder-shared-line"></i>
-                        <span class="hide-menu">Sensor </span>
+                        <span class="hide-menu">Sensor Summary </span>
                     </a>
                     <ul aria-expanded="false" class="collapse first-level" id="sensorSummaryMenu">
                         <li class="sidebar-item">
                             <a href="#" class="sidebar-link">
                                 <i class="ri-eye-line"></i>
-                                <span class="hide-menu">View Sensors</span>
+                                <span class="hide-menu">Register New Sensor</span>
                             </a>
                         </li>
                         <li class="sidebar-item">
-                            <a href="{{ route('datasets.upload.form') }}" class="sidebar-link" target="_blank">
+                            <a href="{{ route('sensors.index') }}" class="sidebar-link" target="_blank">
                                 <i class="ri-file-upload-line"></i>
                                 <span class="hide-menu">Sensors Status</span>
                             </a>
@@ -97,29 +88,29 @@
                         <i class="ri-survey-line"></i>
                         <span class="hide-menu">Analytics</span>
                     </a>
-                    {{-- <ul aria-expanded="false" class="collapse first-level">
+                    <ul aria-expanded="false" class="collapse first-level">
                         <li class="sidebar-item">
                             <a href="#" class="sidebar-link">
                                 <i class="mdi mdi-adjust"></i>
-                                <span class="hide-menu">Pre-F </span>
+                                <span class="hide-menu">Analytics Chart </span>
                             </a>
                         </li>
                         <li class="sidebar-item">
                             <a href="#" class="sidebar-link">
                                 <i class="mdi mdi-adjust"></i>
-                                <span class="hide-menu">Post-F </span>
+                                <span class="hide-menu">Generate Report</span>
                             </a>
                         </li>
-                    </ul> --}}
+                    </ul>
                 </li>
 
-                {{-- <!-- Example of a single menu item -->
+                <!-- Example of a single menu item -->
                 <li class="sidebar-item">
-                    <a class="sidebar-link waves-effect waves-dark" href="#" aria-expanded="false">
+                    <a class="sidebar-link waves-effect waves-dark" href="{{ route('datasets.upload.form') }}" aria-expanded="false">
                         <i class="ri-file-mark-line"></i>
-                        <span class="hide-menu">Lesen </span>
+                        <span class="hide-menu">Upload </span>
                     </a>
-                </li> --}}
+                </li>
 
                 <!-- Example of a dropdown menu -->
                 <li class="sidebar-item">

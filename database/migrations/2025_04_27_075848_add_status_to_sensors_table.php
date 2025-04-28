@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('sensors', function (Blueprint $table) {
-            //
+            $table->enum('status', ['online', 'offline', 'repairing'])->default('online')->after('switchgear_id');
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('sensors', function (Blueprint $table) {
-            //
+            $table->dropColumn('status');
         });
     }
 };
