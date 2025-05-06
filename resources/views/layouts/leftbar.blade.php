@@ -74,7 +74,7 @@
                             </a>
                         </li>
                         <li class="sidebar-item">
-                            <a href="{{ route('sensors.index') }}" class="sidebar-link" target="_blank">
+                            <a href="{{ route('sensors.index') }}" class="sidebar-link">
                                 <i class="ri-file-upload-line"></i>
                                 <span class="hide-menu">Sensors Status</span>
                             </a>

@@ -21,20 +21,19 @@ class DatabaseSeeder extends Seeder
             SensorMeasurementSeeder::class,
         ]);
 
-        // User::factory(10)->create();
-
-        // User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        //     'userCategory' => 'Admin'
-        // ]);
-
-        // User::factory()->create([
-        //     'name' => 'iRMC Staff User',
-        //     'email' => 'irmcstaff@example.com',
-        //     'userCategory' => 'iRMC Staff'
-        // ]);
+        User::create([
+            'name' => 'Admin',
+            'email' => 'admin@geoswitch.com',
+            'password' => bcrypt('password123'),
+            'role' => 'admin'
+        ]);
         
-        // Substation::factory()->count(10)->create();
+        User::create([
+            'name' => 'Maintenance Team',
+            'email' => 'maint@geoswitch.com',
+            'password' => bcrypt('password123'),
+            'role' => 'maintenance'
+        ]);
+       
     }
 }

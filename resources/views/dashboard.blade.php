@@ -234,15 +234,15 @@
     <div class="status-cards">
         <div class="status-card" style="border-left: 4px solid #4CAF50;">
             <div class="card-value" id="normal-count">0</div>
-            <div class="card-label">Normal Sensors</div>
+            <div class="card-label">Online Sensors</div>
         </div>
         <div class="status-card" style="border-left: 4px solid #FFC107;">
             <div class="card-value" id="await-count">0</div>
-            <div class="card-label">Awaiting</div>
+            <div class="card-label">Repairing Sensors</div>
         </div>
         <div class="status-card" style="border-left: 4px solid #F44336;">
             <div class="card-value" id="alarm-count">0</div>
-            <div class="card-label">Alarms</div>
+            <div class="card-label">Offline Sensors</div>
         </div>
     </div>
     
@@ -260,7 +260,17 @@
                     @endforeach
                 </select>
             </div>
-            
+            <div class="control-group">
+                <strong>Filter by Sensor Status:</strong>
+                <div style="margin-top: 8px;">
+                    <select id="statusFilter" class="form-control">
+                        <option value="ALL">All Statuses</option>
+                        <option value="online">Online</option>
+                        <option value="repairing">Repairing</option>
+                        <option value="offline">Offline</option>
+                    </select>
+                </div>
+            </div>
             <div class="control-group">
                 <strong>Filter by Sensor Type:</strong>
                 <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px;">
@@ -354,22 +364,24 @@
     const sensors = @json($sensors ?? []);
     let sensorMarkers = [];
     let selectedTypes = []; // All selected by default
-    let statusCounts = { ALARM: 0, AWAIT: 0, NORMAL: 0, UNKNOWN: 0 };
+    let statusCounts = { online: 0, repairing: 0, offline: 0, unknown: 0 };
+    let selectedStatus = 'ALL';
 
     // Get color based on status
     function getStatusColor(status) {
-        switch ((status || '').toUpperCase()) {
-            case 'ALARM': return 'red';
-            case 'AWAIT': return 'orange';
-            case 'NORMAL': return 'green';
-            default: return 'blue';
+        switch ((status || '').toLowerCase()) {
+            case 'online': return '#2ecc71';    // green
+            case 'repairing': return '#f39c12'; // orange
+            case 'offline': return '#e74c3c';   // red
+            default: return '#3498db';          // blue fallback
         }
     }
+
     // Update status cards
     function updateStatusCards() {
-        document.getElementById('normal-count').textContent = statusCounts.NORMAL || 0;
-        document.getElementById('await-count').textContent = statusCounts.AWAIT || 0;
-        document.getElementById('alarm-count').textContent = statusCounts.ALARM || 0;
+        document.getElementById('normal-count').textContent = statusCounts.online || 0;
+        document.getElementById('await-count').textContent = statusCounts.repairing || 0;
+        document.getElementById('alarm-count').textContent = statusCounts.offline || 0;
     }
 
     function updateLegend() {
@@ -377,11 +389,11 @@
         legend.innerHTML = '';
 
         const statuses = {
-            'ALARM': { color: '#e74c3c', label: 'Alarm' },
-            'AWAIT': { color: '#f39c12', label: 'Awaiting' },
-            'NORMAL': { color: '#2ecc71', label: 'Normal' },
-            'UNKNOWN': { color: '#3498db', label: 'Unknown' }
-        };
+        'online':   { color: '#2ecc71', label: 'Online' },
+        'repairing':{ color: '#f39c12', label: 'Repairing' },
+        'offline':  { color: '#e74c3c', label: 'Offline' },
+        'unknown':  { color: '#3498db', label: 'Unknown' }
+    };
 
         Object.entries(statuses).forEach(([status, { color, label }]) => {
             const count = statusCounts[status] || 0;
@@ -425,14 +437,14 @@
             }
 
             const type = sensor.type;
-            const status = sensor.latest_measurement?.status || 'UNKNOWN'.toUpperCase();
-
+            // const status = sensor.latest_measurement?.status || 'UNKNOWN'.toUpperCase();
+            const status = (sensor.status || 'unknown').toLowerCase();
             // Count status regardless of filters
             statusCounts[status] = (statusCounts[status] || 0) + 1;
 
             const matchSubstation = substationName === 'all' ||
                 sub.substation_name.trim().toLowerCase() === substationName.trim().toLowerCase();
-
+            
             const matchType = selectedTypes.includes('ALL') ||
                 selectedTypes.includes(type);
 
@@ -440,7 +452,9 @@
             console.log(` Substation: ${sub.substation_name}`);
             console.log(` Match Substation: ${matchSubstation}, Match Type: ${matchType}`);
 
-            if (matchSubstation && matchType) {
+            const matchStatus = selectedStatus === 'ALL' || status === selectedStatus;
+
+            if (matchSubstation && matchType && matchStatus) {
                 const latNum = parseFloat(sub.latitude);
                 const lngNum = parseFloat(sub.longitude);
 
@@ -549,6 +563,14 @@
             }
         }
     });
+
+    // Status filter dropdown
+    document.getElementById('statusFilter').addEventListener('change', function () {
+        selectedStatus = this.value;
+        const selectedSubstation = document.getElementById('substationFilter').value;
+        renderSensorMarkers(selectedSubstation, selectedTypes);
+    });
+
     // renderSubstations(substations);
     setTimeout(() => {
         map.invalidateSize();

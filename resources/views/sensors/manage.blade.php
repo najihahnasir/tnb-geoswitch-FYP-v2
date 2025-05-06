@@ -35,8 +35,9 @@
                     <td class="px-4 py-2">{{ optional($sensor->switchgear->substation)->substation_name ?? '-' }}</td>
                     <td class="px-4 py-2">{{ optional($sensor->switchgear)->panel ?? '-' }}</td>
                     <td class="px-4 py-2">
-                        <form action="{{ route('sensors.index', $sensor->id) }}" method="POST" class="flex space-x-2">
+                        <form action="{{ route('sensors.update', $sensor->id) }}" method="POST" class="flex space-x-2">
                             @csrf
+                            @method('PUT')
                             <select name="status" class="form-select px-2 py-1 text-sm">
                                 <option value="online" {{ $sensor->status == 'online' ? 'selected' : '' }}>Online</option>
                                 <option value="offline" {{ $sensor->status == 'offline' ? 'selected' : '' }}>Offline</option>

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Sensor;
 use App\Models\SensorStatusHistory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
 
 class SensorController extends Controller
 {

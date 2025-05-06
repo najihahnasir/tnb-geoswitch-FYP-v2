@@ -12,19 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->integer('userLevel')->default(0); // 0 = Leader, 1 = iRMC Staff, 2 = Admin
-            $table->enum('userCategory', ['Admin', 'Member', 'iRMC Staff'])->default('Member');
+            $table->enum('role', ['admin', 'maintenance'])->default('maintenance')->after('email');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('userLevel');
-            $table->dropColumn('userCategory');
+            $table->dropColumn('role');
         });
     }
 };

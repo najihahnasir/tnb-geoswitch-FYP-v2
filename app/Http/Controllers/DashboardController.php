@@ -14,10 +14,15 @@ class DashboardController extends Controller
     
     public function dashboard()
     {
-        $substations = Substation::select('id', 'substation_name', 'substation_location', 'latitude', 'longitude')->get();
+        // $substations = Substation::select('id', 'substation_name', 'substation_location', 'latitude', 'longitude')->get();
         // $sensors = Sensor::with('switchgear.substation')->get();
-        $sensors = Sensor::with(['switchgear.substation', 'latestMeasurement'])->get();        // dd($substations);
-        return view('dashboard', compact('substations','sensors'));
+        // $sensors = Sensor::with(['switchgear.substation', 'latestMeasurement'])->get();        // dd($substations);
+        // return view('dashboard', compact('substations','sensors'));
+        
+        $sensors = Sensor::with('switchgear.substation')->get();
+        $substations = Substation::all();
+
+        return view('dashboard', compact('sensors', 'substations'));
     }
 
     public function index () 
