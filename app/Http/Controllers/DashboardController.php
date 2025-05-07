@@ -13,16 +13,25 @@ class DashboardController extends Controller
 {
     
     public function dashboard()
-    {
-        // $substations = Substation::select('id', 'substation_name', 'substation_location', 'latitude', 'longitude')->get();
-        // $sensors = Sensor::with('switchgear.substation')->get();
-        // $sensors = Sensor::with(['switchgear.substation', 'latestMeasurement'])->get();        // dd($substations);
-        // return view('dashboard', compact('substations','sensors'));
-        
+    {   
         $sensors = Sensor::with('switchgear.substation')->get();
         $substations = Substation::all();
 
-        return view('dashboard', compact('sensors', 'substations'));
+        $onlineSensors = $sensors->where('status', 'online');
+        $repairingSensors = $sensors->where('status', 'repairing');
+        $offlineSensors = $sensors->where('status', 'offline');
+        
+        // return view('dashboard', compact('sensors', 'substations'));
+        return view('dashboard', [
+            'sensors' => $sensors,
+            'substations' => $substations,
+            'onlineSensors' => $onlineSensors,
+            'repairingSensors' => $repairingSensors,
+            'offlineSensors' => $offlineSensors,
+            'onlineCount' => $onlineSensors->count(),
+            'repairingCount' => $repairingSensors->count(),
+            'offlineCount' => $offlineSensors->count(),
+        ]);
     }
 
     public function index () 

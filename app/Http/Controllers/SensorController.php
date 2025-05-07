@@ -19,6 +19,9 @@ class SensorController extends Controller
         return view('sensors.manage', compact('sensors'));
     }
 
+    
+
+
     /**
      * Show the form for creating a new resource.
      */

@@ -11,7 +11,7 @@
     ]"
 />
 @endsection
-
+@push('after-styles')
 <!--Leaflet CSS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 
@@ -19,8 +19,6 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
 
-
-@section('content')
 <style>
     .dashboard-container {
         display: grid;
@@ -86,13 +84,6 @@
         padding: 15px;
         border-radius: 8px;
     }
-    
-    #map {
-        height: 500px;
-        width: 100%;
-        border-radius: 12px;
-    }
-    
     .status-cards {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -105,7 +96,6 @@
         padding: 15px;
         border-radius: 8px;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        /* transition: transform 0.2s; */
         transition: all 0.3s ease;
         border-left: 4px solid;
     }
@@ -134,12 +124,18 @@
         border-radius: 12px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
+    
+    /* #map {
+        height: 500px;
+        width: 100%;
+        border-radius: 12px;
+    }
+    
     .legend-box {
         position: absolute;
         bottom: 20px;
         right: 20px;
         z-index: 1000;
-        /* background: white; */
         padding: 10px 15px;
         border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
@@ -180,10 +176,10 @@
         stroke: white;
         stroke-width: 3px;
         transform: scale(1.3);
-    }
+    }  */
     
     /* Pulse animation for alarm sensors */
-    .sensor-alarm {
+    /* .sensor-alarm {
         animation: pulse 1.5s infinite;
     }
     
@@ -225,29 +221,39 @@
     #sensor-summary-panel .row span {
         font-size: 14px;
         color: #333;
-    }
-</style>
+    } */
 
+</style>
+@endpush
+
+@section('content')
 <h2>GeoSwitch Dashboard</h2>
 <div class="dashboard-container">
-    <!-- Status Cards -->
+   <!-- Status Cards -->
     <div class="status-cards">
-        <div class="status-card" style="border-left: 4px solid #4CAF50;">
-            <div class="card-value" id="normal-count">0</div>
+        <!-- Online -->
+        <div onclick="showOnlineSensors()" class="status-card cursor-pointer" style="border-left: 4px solid #4CAF50;">            
+            <div class="card-value" id="normal-count">{{ $onlineCount ?? 0 }}</div>
             <div class="card-label">Online Sensors</div>
         </div>
-        <div class="status-card" style="border-left: 4px solid #FFC107;">
-            <div class="card-value" id="await-count">0</div>
+
+        <!-- Repairing -->
+        <div onclick="showRepairingSensors()" class="status-card cursor-pointer" style="border-left: 4px solid #FFC107;">            
+            <div class="card-value" id="await-count">{{ $repairingCount ?? 0 }}</div>
             <div class="card-label">Repairing Sensors</div>
         </div>
-        <div class="status-card" style="border-left: 4px solid #F44336;">
-            <div class="card-value" id="alarm-count">0</div>
+
+        <!-- Offline -->
+        <div onclick="showOfflineSensors()" class="status-card cursor-pointer" style="border-left: 4px solid #F44336;">            
+            <div class="card-value" id="alarm-count">{{ $offlineCount ?? 0 }}</div>
             <div class="card-label">Offline Sensors</div>
         </div>
     </div>
+
     
+
     <!-- Map Section -->
-    <div class="map-section">
+    {{-- <div class="map-section">
         <h3 style="margin-top: 0;">Substation Map</h3>
         
         <div class="controls-container">
@@ -304,17 +310,11 @@
                 <div id="legend-items"></div>
             </div>
         </div>
-        
-        {{-- <div class="legend-box">
-            <h4 style="margin-top: 0; font-size: 14px; margin-bottom: 8px;">Status Legend</h4>
-            <div id="legend-items"></div>
-        </div>
+    </div> --}}
+  
 
-        <div id="map"></div> --}}
-    </div>
-    
     <!-- Charts Section -->
-    <div class="charts-grid">
+    {{-- <div class="charts-grid">
         <div class="chart-container">
             <h3>Sensor Condition Analytics</h3>
             <canvas id="sensorConditionChart"></canvas>
@@ -329,7 +329,7 @@
             <h3>Sensor Performance</h3>
             <canvas id="sensorPerformanceChart"></canvas>
         </div>
-    </div>
+    </div> --}}
 
     <div id="sensor-summary-panel">
         <h4>Sensor Summary</h4>
@@ -339,7 +339,10 @@
         <div class="row"><label>Panel:</label><span id="summary-panel">-</span></div>
         <div class="row"><label>Substation:</label><span id="summary-substation">-</span></div>
     </div>
+    @include('partial-dashboard.popup-sensor')
+    @include('partial-dashboard.map')
 </div>
+@endsection
 
 @push('after-scripts')
 <!--Leaflet JS -->
@@ -350,7 +353,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 {{-- latest script map --}}
-<script>
+{{-- <script>
     var map = L.map('map').setView([3.1390, 101.6869], 11);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -576,408 +579,9 @@
         map.invalidateSize();
     }, 500);
 
-</script>
-
-
-
-{{-- working all sub tunjuk by default tapi sensors marker problem --}}
-{{-- <script>
-    var map = L.map('map').setView([3.1390, 101.6869], 11);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 18,
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
-
-    const substations = @json($substations ?? []);
-    const sensors = @json($sensors ?? []);
-    let selectedTypes = ['Partial Discharge', 'Thermal'];
-    let sensorMarkers = [];
-    let substationMarkers = [];
-    let statusCounts = { ALARM: 0, AWAIT: 0, NORMAL: 0, UNKNOWN: 0 };
-
-    function getStatusColor(status) {
-        switch ((status || '').toUpperCase()) {
-            case 'ALARM': return 'red';
-            case 'AWAIT': return 'orange';
-            case 'NORMAL': return 'green';
-            default: return 'blue';
-        }
-    }
-
-    function updateStatusCards() {
-        document.getElementById('normal-count').textContent = statusCounts.NORMAL || 0;
-        document.getElementById('await-count').textContent = statusCounts.AWAIT || 0;
-        document.getElementById('alarm-count').textContent = statusCounts.ALARM || 0;
-    }
-
-    function updateLegend() {
-        const legend = document.getElementById('legend-items');
-        legend.innerHTML = '';
-
-        const statuses = {
-            'ALARM': { color: '#e74c3c', label: 'Alarm' },
-            'AWAIT': { color: '#f39c12', label: 'Awaiting' },
-            'NORMAL': { color: '#2ecc71', label: 'Normal' },
-            'UNKNOWN': { color: '#3498db', label: 'Unknown' }
-        };
-
-        Object.entries(statuses).forEach(([status, { color, label }]) => {
-            const count = statusCounts[status] || 0;
-            if (count > 0) {
-                const item = document.createElement('div');
-                item.className = 'legend-item';
-                item.innerHTML = `
-                    <span class="legend-color" style="background: ${color}"></span>
-                    <span>${label} (${count})</span>
-                `;
-                legend.appendChild(item);
-            }
-        });
-    }
-
-    function calculateTotalStatusCounts() {
-        let counts = { ALARM: 0, AWAIT: 0, NORMAL: 0, UNKNOWN: 0 };
-        sensors.forEach(sensor => {
-            const status = (sensor.latest_measurement?.status || 'UNKNOWN').toUpperCase();
-            counts[status] = (counts[status] || 0) + 1;
-        });
-        return counts;
-    }
-
-
-    // function updateSensorSummaryPanel(sensor) {
-    //     document.getElementById('summary-tag').textContent = sensor.tag || '-';
-    //     document.getElementById('summary-type').textContent = sensor.type || '-';
-    //     document.getElementById('summary-status').textContent = sensor.latest_measurement?.status || '-';
-    //     document.getElementById('summary-panel').textContent = sensor.switchgear?.panel || '-';
-    //     document.getElementById('summary-substation').textContent = sensor.switchgear?.substation?.substation_name || '-';
-    //     document.getElementById('sensor-summary-panel').classList.add('active');
-    // }
-
-    function renderSensorMarkers(substationName, selectedTypes) {
-        sensorMarkers.forEach(marker => map.removeLayer(marker));
-        sensorMarkers = [];
-        statusCounts = { ALARM: 0, AWAIT: 0, NORMAL: 0, UNKNOWN: 0 };
-
-        sensors.forEach(sensor => {
-            const switchgear = sensor.switchgear;
-            const sub = switchgear?.substation;
-            if (!sub || !switchgear) return;
-
-            const type = sensor.type;
-            const status = sensor.latest_measurement?.status?.toUpperCase() || 'UNKNOWN';
-            statusCounts[status] = (statusCounts[status] || 0) + 1;
-
-            const matchSub = substationName !== 'all' && sub.substation_name.trim().toLowerCase() === substationName.trim().toLowerCase();
-            const matchType = selectedTypes.includes('ALL') || selectedTypes.includes(type);
-
-            if (matchSub && matchType) {
-                const latNum = parseFloat(sub.latitude);
-                const lngNum = parseFloat(sub.longitude);
-                if (isNaN(latNum) || isNaN(lngNum)) return;
-
-                const offsetLat = +(latNum + (Math.random() - 0.5) * 0.0003).toFixed(6);
-                const offsetLng = +(lngNum + (Math.random() - 0.5) * 0.0003).toFixed(6);
-
-                const marker = L.circleMarker([offsetLat, offsetLng], {
-                    radius: 10,
-                    color: getStatusColor(status),
-                    fillColor: getStatusColor(status),
-                    fillOpacity: 0.8,
-                    weight: 2,
-                    className: `sensor-marker ${status === 'ALARM' ? 'sensor-alarm' : ''}`
-                }).on('click', () => {
-                    updateSensorSummaryPanel(sensor);
-                });
-
-                marker.addTo(map);
-                sensorMarkers.push(marker);
-            }
-        });
-
-        updateStatusCards();
-        updateLegend();
-
-        if (sensorMarkers.length > 0) {
-            map.fitBounds(L.featureGroup(sensorMarkers).getBounds(), { padding: [40, 40] });
-        }
-    }
-
-    function renderSubstationMarkers(data) {
-        substationMarkers.forEach(marker => map.removeLayer(marker));
-        substationMarkers = [];
-
-        data.forEach(sub => {
-            const sensorCount = sensors.filter(s => s.switchgear?.substation?.substation_name === sub.substation_name).length;
-
-            const marker = L.marker([parseFloat(sub.latitude), parseFloat(sub.longitude)], {
-                icon: L.divIcon({
-                    html: `
-                        <div class="substation-marker" style="
-                            background: #3498db;
-                            width: 28px;
-                            height: 28px;
-                            border-radius: 4px;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            color: white;
-                            font-weight: bold;
-                            border: 2px solid white;
-                            box-shadow: 0 0 5px rgba(0,0,0,0.3);
-                        ">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                            </svg>
-                        </div>
-                    `,
-                    className: '',
-                    iconSize: [30, 30]
-                })
-            }).bindPopup(`<b>${sub.substation_name}</b><br>${sub.substation_location}<br><small>Sensors: ${sensorCount}</small>`);
-
-            marker.addTo(map);
-            substationMarkers.push(marker);
-        });
-    }
-
-    renderSubstationMarkers(substations);
-
-    document.getElementById('substationFilter').addEventListener('change', function () {
-        const selected = this.value;
-        if (selected === 'all') {
-            renderSubstationMarkers(substations);
-            sensorMarkers.forEach(marker => map.removeLayer(marker));
-            map.setView([3.1390, 101.6869], 11);
-        } else {
-            const filtered = substations.filter(s => s.substation_name === selected);
-            renderSubstationMarkers(filtered);
-            renderSensorMarkers(selected, selectedTypes);
-            if (filtered.length > 0) {
-                map.setView([filtered[0].latitude, filtered[0].longitude], 14);
-            }
-        }
-    });
-
-    document.querySelectorAll('.sensor-filter').forEach(cb => {
-        cb.addEventListener('change', function () {
-            selectedTypes = Array.from(document.querySelectorAll('.sensor-filter:checked')).map(cb => cb.value);
-            const selectedSubstation = document.getElementById('substationFilter').value;
-            renderSensorMarkers(selectedSubstation, selectedTypes);
-        });
-    });
-
-    setTimeout(() => {
-        map.invalidateSize();
-    }, 500);
 </script> --}}
 
-{{-- current --}}
-{{-- <script>
-    var map = L.map('map').setView([3.1390, 101.6869], 11);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 18,
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
-
-    var substations = @json($substations ?? []);
-    const sensors = @json($sensors ?? []);
-    let selectedTypes = ['Partial Discharge','Thermal'];
-    let sensorMarkers = [];
-    let markers = [];
-    let statusCounts = { ALARM: 0, AWAIT: 0, NORMAL: 0, UNKNOWN: 0 };
-
-    function getStatusColor(status) {
-        switch ((status || '').toUpperCase()) {
-            case 'ALARM': return 'red';
-            case 'AWAIT': return 'orange';
-            case 'NORMAL': return 'green';
-            default: return 'blue';
-        }
-    }
-
-    function updateStatusCards() {
-        document.getElementById('normal-count').textContent = statusCounts.NORMAL || 0;
-        document.getElementById('await-count').textContent = statusCounts.AWAIT || 0;
-        document.getElementById('alarm-count').textContent = statusCounts.ALARM || 0;
-    }
-
-    function updateLegend() {
-        const legend = document.getElementById('legend-items');
-        legend.innerHTML = '';
-
-        const statuses = {
-            'ALARM': { color: '#e74c3c', label: 'Alarm' },
-            'AWAIT': { color: '#f39c12', label: 'Awaiting' },
-            'NORMAL': { color: '#2ecc71', label: 'Normal' },
-            'UNKNOWN': { color: '#3498db', label: 'Unknown' }
-        };
-
-        Object.entries(statuses).forEach(([status, { color, label }]) => {
-            const count = statusCounts[status] || 0;
-            if (count > 0) {
-                const item = document.createElement('div');
-                item.className = 'legend-item';
-                item.innerHTML = `
-                    <span class="legend-color" style="background: ${color}"></span>
-                    <span>${label} (${count})</span>
-                `;
-                legend.appendChild(item);
-            }
-        });
-    }
-
-    function calculateTotalStatusCounts() {
-        let counts = { ALARM: 0, AWAIT: 0, NORMAL: 0, UNKNOWN: 0 };
-        sensors.forEach(sensor => {
-            const status = (sensor.latest_measurement?.status || 'UNKNOWN').toUpperCase();
-            counts[status] = (counts[status] || 0) + 1;
-        });
-        return counts;
-    }
-
-    function renderSensorMarkers(substationName, selectedTypes) {
-        sensorMarkers.forEach(marker => map.removeLayer(marker));
-        sensorMarkers = [];
-        statusCounts = { ALARM: 0, AWAIT: 0, NORMAL: 0, UNKNOWN: 0 };
-
-        sensors.forEach(sensor => {
-            const switchgear = sensor.switchgear;
-            const sub = switchgear?.substation;
-
-            if (!sub || !switchgear) return;
-
-            const type = sensor.type;
-            const status = (sensor.latest_measurement?.status || 'UNKNOWN').toUpperCase();
-
-            statusCounts[status] = (statusCounts[status] || 0) + 1;
-
-            const matchSubstation = substationName === 'all' ||
-                sub.substation_name.trim().toLowerCase() === substationName.trim().toLowerCase();
-
-            const matchType = selectedTypes.includes('ALL') ||
-                selectedTypes.includes(type);
-
-            if (matchSubstation && matchType) {
-                const latNum = parseFloat(sub.latitude);
-                const lngNum = parseFloat(sub.longitude);
-
-                if (isNaN(latNum) || isNaN(lngNum)) return;
-
-                const offsetLat = +(latNum + (Math.random() - 0.5) * 0.0003).toFixed(6);
-                const offsetLng = +(lngNum + (Math.random() - 0.5) * 0.0003).toFixed(6);
-
-                const marker = L.circleMarker([offsetLat, offsetLng], {
-                    radius: 10,
-                    color: getStatusColor(status),
-                    fillColor: getStatusColor(status),
-                    fillOpacity: 0.8,
-                    weight: 2,
-                    className: `sensor-marker ${status === 'ALARM' ? 'sensor-alarm' : ''}`
-                }).bindPopup(`
-                    <b>${sensor.tag || 'Sensor'}</b><br>
-                    Type: ${type || 'N/A'}<br>
-                    Status: ${status}<br>
-                    Panel: ${switchgear.panel || 'N/A'}<br>
-                    Substation: ${sub.substation_name}
-                `);
-
-                marker.addTo(map);
-                sensorMarkers.push(marker);
-            }
-        });
-
-        updateStatusCards();
-        updateLegend();
-
-        if (sensorMarkers.length > 0) {
-            map.fitBounds(L.featureGroup(sensorMarkers).getBounds(), { padding: [40, 40] });
-        }
-    }
-
-    function renderMarkers(data) {
-        markers.forEach(marker => map.removeLayer(marker));
-        markers = [];
-
-        data.forEach(sub => {
-            const sensorCount = sensors.filter(s => s.switchgear?.substation?.substation_name === sub.substation_name).length;
-            const marker = createSubstationMarker(
-                parseFloat(sub.latitude),
-                parseFloat(sub.longitude),
-                sub.substation_name,
-                sub.substation_location,
-                sensorCount
-            ).addTo(map);
-
-            markers.push(marker);
-        });
-    }
-
-    function createSubstationMarker(lat, lng, name, location, sensorCount) {
-        return L.marker([lat, lng], {
-            icon: L.divIcon({
-                html: `
-                    <div class="substation-marker" style="
-                        background: #3498db;
-                        width: 28px;
-                        height: 28px;
-                        border-radius: 4px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        color: white;
-                        font-weight: bold;
-                        border: 2px solid white;
-                        box-shadow: 0 0 5px rgba(0,0,0,0.3);
-                    ">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                        </svg>
-                    </div>
-                `,
-                className: '',
-                iconSize: [30, 30]
-            })
-        }).bindPopup(`<b>${name}</b><br>${location}<br><small>Sensors: ${sensorCount}</small>`);
-    }
-
-    // Initial Load
-    renderMarkers(substations);
-    renderSensorMarkers('all', selectedTypes);
-    statusCounts = calculateTotalStatusCounts();
-    updateStatusCards();
-    updateLegend();
-
-    // Filters
-    document.getElementById('substationFilter').addEventListener('change', function () {
-        var selected = this.value;
-        if (selected === 'all') {
-            renderMarkers(substations);
-            map.setView([3.1390, 101.6869], 11);
-        } else {
-            var filtered = substations.filter(sub => sub.substation_name === selected);
-            renderMarkers(filtered);
-            if (filtered.length > 0) {
-                map.setView([filtered[0].latitude, filtered[0].longitude], 14);
-            }
-        }
-        renderSensorMarkers(selected, selectedTypes);
-    });
-
-    document.querySelectorAll('.sensor-filter').forEach(cb => {
-        cb.addEventListener('change', function () {
-            selectedTypes = Array.from(document.querySelectorAll('.sensor-filter:checked')).map(cb => cb.value);
-            const selectedSubstation = document.getElementById('substationFilter').value;
-            renderSensorMarkers(selectedSubstation, selectedTypes);
-        });
-    });
-
-    setTimeout(() => {
-        map.invalidateSize();
-    }, 500);
-</script> --}}
 
 
 
@@ -1161,128 +765,5 @@
     setTimeout(handleChartResize, 100);
 </script>
 
-{{-- basic ada map icon --}}
-{{-- <script>
-    var map = L.map('map').setView([3.1390, 101.6869], 11);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 18,
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
-
-    const substations = @json($substations ?? []);
-    const sensors = @json($sensors ?? []);
-
-    let sensorMarkers = [];
-    let baseMarkers = [];
-    let selectedTypes = ['ALL'];
-    let substationFilter = 'all';
-
-    function getStatusColor(status) {
-        switch ((status || '').toUpperCase()) {
-            case 'ALARM': return 'red';
-            case 'AWAIT': return 'orange';
-            case 'NORMAL': return 'green';
-            default: return 'blue';
-        }
-    }
-
-    function renderSubstations(data) {
-        baseMarkers.forEach(m => map.removeLayer(m));
-        baseMarkers = [];
-
-        data.forEach(sub => {
-            const marker = L.marker([sub.latitude, sub.longitude])
-                .bindPopup(`<b>${sub.substation_name}</b><br>${sub.substation_location}`)
-                .addTo(map);
-            baseMarkers.push(marker);
-        });
-    }
-
-    // 📍 Render Sensor Markers
-    function renderSensorMarkers() {
-        sensorMarkers.forEach(m => map.removeLayer(m));
-        sensorMarkers = [];
-
-        sensors.forEach(sensor => {
-            const substation = sensor.switchgear?.substation;
-            if (!substation) return;
-
-            const type = sensor.type;
-            const status = sensor.status || 'UNKNOWN';
-
-            const matchSub = substationFilter === 'all' || substation.substation_name === substationFilter;
-            const matchType = selectedTypes.includes('ALL') || selectedTypes.includes(type);
-
-            if (matchSub && matchType) {
-                const offsetLat = substation.latitude + (Math.random() - 0.5) * 0.0005;
-                const offsetLng = substation.longitude + (Math.random() - 0.5) * 0.0005;
-
-                const marker = L.circleMarker([offsetLat, offsetLng], {
-                    radius: 8,
-                    color: getStatusColor(status),
-                    fillOpacity: 0.9,
-                    weight: 1
-                }).bindPopup(`
-                    <b>${sensor.tag || 'Sensor'}</b><br>
-                    Type: ${type}<br>
-                    Status: ${status}<br>
-                    Panel: ${sensor.switchgear?.panel || 'N/A'}<br>
-                    Substation: ${substation.substation_name}
-                `).addTo(map);
-
-                sensorMarkers.push(marker);
-            }
-        });
-    }
-
-    function updateMap() {
-        const filteredSubstations = substationFilter === 'all'
-            ? substations
-            : substations.filter(s => s.substation_name === substationFilter);
-
-        renderSubstations(filteredSubstations);
-        renderSensorMarkers();
-
-        if (sensorMarkers.length > 0) {
-            map.fitBounds(L.featureGroup(sensorMarkers).getBounds(), { padding: [40, 40] });
-        } else if (filteredSubstations.length > 0) {
-            map.setView([filteredSubstations[0].latitude, filteredSubstations[0].longitude], 14);
-        } else {
-            map.setView([3.1390, 101.6869], 11); // KL fallback
-        }
-
-        // Optional: toast if nothing checked
-        if (selectedTypes.length === 0) {
-            console.log("⚠️ No sensor types selected.");
-        }
-    }
-
-    // Substation dropdown
-    document.getElementById('substationFilter')?.addEventListener('change', function () {
-        substationFilter = this.value;
-        updateMap();
-    });
-
-    // ✅ Sensor type checkboxes
-    document.querySelectorAll('.sensor-filter').forEach(cb => {
-        cb.addEventListener('change', function () {
-            selectedTypes = Array.from(document.querySelectorAll('.sensor-filter:checked')).map(cb => cb.value);
-            if (selectedTypes.length === 0) {
-                alert('⚠️ Please select at least one sensor type.');
-            }
-            updateMap();
-        });
-    });
-    
-    // Initial render
-    updateMap();
-
-    // setTimeout(() => map.invalidateSize(), 100);
-    setTimeout(() => {
-        map.invalidateSize();
-    }, 500);
-</script> --}}
 
 @endpush
-@endsection
