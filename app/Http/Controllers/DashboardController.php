@@ -20,8 +20,16 @@ class DashboardController extends Controller
         $onlineSensors = $sensors->where('status', 'online');
         $repairingSensors = $sensors->where('status', 'repairing');
         $offlineSensors = $sensors->where('status', 'offline');
+
+        // Prepare summary for popup alert (show top 3 offline sensors only)
+        $offlineSummary = $offlineSensors->take(3)->map(function ($sensor) {
+            return [
+                'substation' => optional($sensor->switchgear->substation)->name ?? 'Unknown',
+                'sensor_type' => $sensor->type,
+                'sensor_tag' => $sensor->tag,
+            ];
+        });
         
-        // return view('dashboard', compact('sensors', 'substations'));
         return view('dashboard', [
             'sensors' => $sensors,
             'substations' => $substations,
@@ -31,6 +39,7 @@ class DashboardController extends Controller
             'onlineCount' => $onlineSensors->count(),
             'repairingCount' => $repairingSensors->count(),
             'offlineCount' => $offlineSensors->count(),
+            'offlineSummary' => $offlineSummary,
         ]);
     }
 

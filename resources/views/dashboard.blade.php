@@ -124,6 +124,53 @@
         border-radius: 12px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
+
+    .alert-popup {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 350px;
+        background: white;
+        border: 1px solid #dc3545;
+        border-left: 6px solid #dc3545;
+        padding: 16px;
+        border-radius: 10px;
+        z-index: 9999;
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    .popup-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 1rem;
+        margin-bottom: 8px;
+    }
+
+    .popup-body {
+        font-size: 0.9rem;
+        color: #333;
+    }
+
+    .popup-footer {
+        margin-top: 10px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 20px;
+        color: #dc3545;
+        cursor: pointer;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
     
     /* #map {
         height: 500px;
@@ -227,6 +274,28 @@
 @endpush
 
 @section('content')
+
+<!-- Urgent Sensor Alert Popup -->
+{{-- <div id="offlineSensorPopup" class="alert-popup shadow-lg" style="display: none;">
+    <div class="popup-header">
+        <strong>🔴 Urgent Sensor Alert</strong>
+        <button onclick="closeOfflinePopup()" class="close-btn">&times;</button>
+    </div>
+    <div class="popup-body">
+        <p>There are <strong>{{ $offlineCount }}</strong> 🔴 <strong>OFFLINE sensors</strong> in the system.</p>
+        <ul>
+            @foreach ($offlineSummary as $item)
+                <li><strong>{{ $item['substation'] }}</strong> – {{ $item['sensor_type'] }} sensor (e.g., {{ $item['sensor_tag'] }})</li>
+            @endforeach
+        </ul>
+        <small>Last updated: {{ \Carbon\Carbon::now()->format('d M Y, h:i A') }}</small>
+    </div>
+    <div class="popup-footer">
+        <a href="{{ route('sensors.offline') }}" class="btn btn-danger btn-sm">View Affected Sensors</a>
+        <button onclick="closeOfflinePopup()" class="btn btn-secondary btn-sm">Dismiss</button>
+    </div>
+</div> --}}
+
 <h2>GeoSwitch Dashboard</h2>
 <div class="dashboard-container">
    <!-- Status Cards -->
@@ -351,6 +420,22 @@
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <!-- Include Chart.js for Analytics -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Show popup on page load
+    window.addEventListener('DOMContentLoaded', function () {
+        // Only show if there are offline sensors
+        const offlineCount = {{ $offlineCount }};
+        if (offlineCount > 0 && !sessionStorage.getItem('popupDismissed')) {
+            document.getElementById('offlineSensorPopup').style.display = 'block';
+        }
+    });
+
+    function closeOfflinePopup() {
+        document.getElementById('offlineSensorPopup').style.display = 'none';
+        sessionStorage.setItem('popupDismissed', true);
+    }
+</script>
 
 {{-- latest script map --}}
 {{-- <script>
@@ -586,7 +671,7 @@
 
 
 {{-- chart script --}}
-<script>
+{{-- <script>
     // Function to initialize charts with responsive settings
     function initializeCharts() {
         // Destroy existing charts if they exist
@@ -763,7 +848,7 @@
 
     // Call this after any layout changes that might affect chart containers
     setTimeout(handleChartResize, 100);
-</script>
+</script> --}}
 
 
 @endpush

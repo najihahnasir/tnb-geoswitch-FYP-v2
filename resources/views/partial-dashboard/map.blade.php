@@ -142,6 +142,11 @@
                 @endforeach
             </div>
         </div>
+        <div class="control-group" style="align-self: end;">
+            <button id="resetFiltersBtn" class="btn btn-secondary" style="margin-top: 8px;">
+                Reset All Filters
+            </button>
+        </div>
     </div>
     <div id="map-container" style="position: relative;">
         <div id="map"></div>
@@ -613,6 +618,7 @@
                     // Hide sensors when viewing all substations
                     sensorMarkers.forEach(m => map.removeLayer(m));
                     sensorMarkers = [];
+                    return; 
                 } else {
                     const filtered = substations.filter(sub => 
                         sub.substation_name === selected
@@ -634,12 +640,35 @@
             });
         }
 
-        // Initial render
-        // renderMarkers(substations);
-        // renderSensorMarkers('all', selectedTypes);
-        // initializeFilters();
         renderMarkers(substations); // Only show substations on load
         initializeFilters(); // Wait for user interaction to load sensors
+
+        document.getElementById('resetFiltersBtn').addEventListener('click', function () {
+        // Reset dropdowns
+        document.getElementById('substationFilter').value = 'all';
+        document.getElementById('statusFilter').value = 'ALL';
+
+        // Reset checkboxes
+        document.querySelectorAll('.sensor-filter').forEach(cb => cb.checked = false);
+        document.getElementById('allTypes').checked = true;
+
+        // Update selected values
+        selectedTypes = ['ALL'];
+        selectedStatus = 'ALL';
+
+        // Re-render map
+        renderMarkers(substations);
+        map.setView([3.1390, 101.6869], 11);
+
+        // Remove any existing sensor markers
+        sensorMarkers.forEach(marker => map.removeLayer(marker));
+        sensorMarkers = [];
+
+        // Clear legend & summary panel
+        document.getElementById('legend-items').innerHTML = '';
+        document.getElementById('sensor-summary-panel').classList.remove('active');
+    });
+
 
         // Handle mutually exclusive logic for sensor type filters
         document.querySelectorAll('.sensor-filter').forEach(cb => {
