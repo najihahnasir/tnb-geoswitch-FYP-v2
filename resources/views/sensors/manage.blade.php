@@ -12,7 +12,23 @@
         </div>
     @endif
 
+    @if(request('filter'))
+        <div class="bg-yellow-100 text-yellow-800 p-3 rounded mb-4">
+            Showing only <strong>{{ ucfirst(request('filter')) }}</strong> sensors.
+            <a href="{{ route('sensors.index') }}" class="underline text-blue-600">Clear Filter</a>
+        </div>
+    @endif
     <div class="overflow-x-auto">
+        <form method="GET" action="{{ route('sensors.index') }}" class="mb-4">
+            <label for="filter" class="mr-2">Filter by Status:</label>
+            <select name="filter" id="filter" class="form-select inline-block w-auto" onchange="this.form.submit()">
+                <option value="">-- All --</option>
+                <option value="online" {{ request('filter') == 'online' ? 'selected' : '' }}>Online</option>
+                <option value="repairing" {{ request('filter') == 'repairing' ? 'selected' : '' }}>Repairing</option>
+                <option value="offline" {{ request('filter') == 'offline' ? 'selected' : '' }}>Offline</option>
+            </select>
+        </form>
+        
         <table class="table-auto w-full text-sm border border-gray-300">
             <thead class="bg-gray-700 text-white">
                 <tr>

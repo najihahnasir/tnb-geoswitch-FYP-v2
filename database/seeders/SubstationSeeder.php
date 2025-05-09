@@ -61,14 +61,91 @@ class SubstationSeeder extends Seeder
                 'type' => 'Main',
                 'created_at' => now(),
                 'updated_at' => now()
+            ],
+            // New substations
+            [
+                'substation_name' => 'PPU Wangsa Maju',
+                'substation_location' => 'Wangsa Maju',
+                'code' => 'TEMP_' . uniqid(),
+                'latitude' => 3.192788,
+                'longitude' => 101.741585,
+                'description' => 'Main substation for Wangsa Maju',
+                'status' => 'active',
+                'type' => 'Main',
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'substation_name' => 'PPU Alam Damai',
+                'substation_location' => 'Alam Damai',
+                'code' => 'TEMP_' . uniqid(),
+                'latitude' => 3.060493,
+                'longitude' => 101.739004,
+                'description' => 'Main substation for Alam Damai',
+                'status' => 'active',
+                'type' => 'Main',
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'substation_name' => 'PPU HUKM',
+                'substation_location' => 'HUKM',
+                'code' => 'TEMP_' . uniqid(),
+                'latitude' => 3.099545,
+                'longitude' => 101.725374,
+                'description' => 'Main substation for HUKM',
+                'status' => 'active',
+                'type' => 'Main',
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'substation_name' => 'PPU Yow Chuan',
+                'substation_location' => 'Yow Chuan',
+                'code' => 'TEMP_' . uniqid(),
+                'latitude' => 3.150726,
+                'longitude' => 101.735201,
+                'description' => 'Main substation for Yow Chuan',
+                'status' => 'active',
+                'type' => 'Main',
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'substation_name' => 'PMU KLCC',
+                'substation_location' => 'KLCC',
+                'code' => 'TEMP_' . uniqid(),
+                'latitude' => 3.158181,
+                'longitude' => 101.716991,
+                'description' => 'Main substation for KLCC',
+                'status' => 'active',
+                'type' => 'Main',
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'substation_name' => 'PMU Bandar Tun Razak',
+                'substation_location' => 'Bandar Tun Razak',
+                'code' => 'TEMP_' . uniqid(),
+                'latitude' => 3.099675,
+                'longitude' => 101.708651,
+                'description' => 'Main substation for Bandar Tun Razak',
+                'status' => 'active',
+                'type' => 'Main',
+                'created_at' => now(),
+                'updated_at' => now()
             ]
         ];
-        // Substation::insert($substations);
-        foreach ($substations as $sub) {
-            Substation::updateOrInsert(
-                ['code' => $sub['code']],
-                $sub
-            );
-        }        
+        
+        foreach ($substations as $substation) {
+            $exists = Substation::where('substation_name', $substation['substation_name'])->exists();
+            
+            if (!$exists) {
+                Substation::updateOrInsert(
+                    ['code' => $substation['code']],
+                    $substation
+                );
+            }
+        }
     }
 }

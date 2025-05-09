@@ -13,8 +13,12 @@ class SensorController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $query = Sensor::with('switchgear.substation');
+        if ($request->has('filter') && in_array($request->filter, ['online', 'offline', 'repairing'])) {
+            $query->where('status', $request->filter);
+        }
         $sensors = Sensor::with('switchgear.substation')->paginate(20);
         return view('sensors.manage', compact('sensors'));
     }
