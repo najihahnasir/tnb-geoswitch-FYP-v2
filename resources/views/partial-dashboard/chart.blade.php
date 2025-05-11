@@ -21,12 +21,27 @@
         width: 100% !important;
         height: 100% !important;
     }
+    .col-md-4 {
+        flex: 0 0 30%;
+        max-width: 30%;
+    }
+    .col-md-8 {
+        flex: 0 0 66%;
+        max-width: 66%;
+    }
+    @media (max-width: 768px) {
+        .col-md-4,
+        .col-md-8 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+    }
 </style>
 @endpush
-<div class="row align-items-start" style="margin-top: 0px;">
+<div class="row align-items-start mb-0" style="margin-top: 0px;">
     <!-- LEFT: Bar Chart -->
-    <div class="col-md-8">
-        <div class="chart-card">
+    <div class="col-md-8 ">
+        <div class="chart-card mb-0">
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <h5 class="chart-title mb-0">Substation Sensor Overview</h5>
                 <div class="ms-2"> <!-- Added margin start -->
@@ -122,69 +137,6 @@
             }
         }
     });
-
-//     const overviewData = @json($overviewData);
-//     overviewData.sort((a, b) => b.offline - a.offline);
-    
-
-//     const substationLabels = overviewData.map(item => item.label);
-//     const online = overviewData.map(item => item.online);
-//     const repairing = overviewData.map(item => item.repairing);
-//     const offline = overviewData.map(item => item.offline);
-
-//     const substationCtx = document.getElementById('substationChart').getContext('2d');
-   
-//     new Chart(substationCtx, {
-//     type: 'bar',
-//     data: {
-//         labels: substationLabels,
-//         datasets: [
-//             {
-//                 label: 'Online',
-//                 data: online,
-//                 backgroundColor: '#4CAF50',
-//                 barThickness: 10,
-//                 maxBarThickness: 10,
-//             },
-//             {
-//                 label: 'Repairing',
-//                 data: repairing,
-//                 backgroundColor: '#FFC107',
-//                 barThickness: 10,
-//                 maxBarThickness: 10,
-//             },
-//             {
-//                 label: 'Offline',
-//                 data: offline,
-//                 backgroundColor: '#F44336',
-//                 barThickness: 10,
-//                 maxBarThickness: 10,
-//             }
-//         ]
-//     },
-//     options: {
-//         indexAxis: 'y',
-//         responsive: true,
-//         maintainAspectRatio: false,
-//         scales: {
-//             x: {
-//                 stacked: true,
-//                 beginAtZero: true,
-//                 grid: { display: false }
-//             },
-//             y: {
-//                 stacked: true,
-//                 grid: { display: false },
-//                 ticks: { autoSkip: false }
-//             }
-//         },
-//         plugins: {
-//             legend: { position: 'bottom' }
-//         }
-//     }
-// });
-
-
 
     const overviewData = @json($overviewData);
     let substationChart;

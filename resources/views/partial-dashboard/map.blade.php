@@ -5,6 +5,34 @@
         height: 500px;
         width: 100%;
         border-radius: 12px;
+        z-index: 400;
+    }
+    .map-section {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-top: 10px;
+    }
+    #map-container,
+    .map-section {
+        position: relative;
+        z-index: 1; /* stay behind fixed popups */
+    }
+
+     .controls-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 16px;
+        margin-bottom: 10px;
+    }
+    
+    .control-group {
+        background: #f8f9fa;
+        padding: 15px 20px;
+        border-radius: 8px;
+        border: 1px solid #e2e2e2;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
 
     .legend-box {
@@ -17,9 +45,14 @@
         border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         max-width: 200px;
-        background: rgba(255, 255, 255, 0.9);
+        /* background: rgba(255, 255, 255, 0.9); */
+        background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(2px);
         border: 1px solid #eee;
+    }
+
+    .sensor-marker, .substation-marker {
+        z-index: 500;
     }
 
     .legend-item {
@@ -104,32 +137,38 @@
 <div>
     <!-- Map Section -->
     <div class="map-section">
-    <h3 style="margin-top: 0;">Substation Map</h3>
-    
+    {{-- <h5 style="margin-top: 0;">Substation Map</h5> --}}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">Substation Map</h5>
+        <button id="resetFiltersBtn" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-undo-alt me-1"></i> Reset Filters
+        </button>
+    </div>
+
     <div class="controls-container">
         <div class="control-group">
-            <label for="substationFilter"><strong>Substation:</strong></label>
-            <select id="substationFilter" class="form-control">
+            <label for="substationFilter" class="form-label fw-semibold">Substation</label>
+            <select id="substationFilter" class="form-select">
                 <option value="all">All Substations</option>
                 @foreach ($substations as $s)
                     <option value="{{ $s->substation_name }}">{{ $s->substation_name }}</option>
                 @endforeach
             </select>
         </div>
+
         <div class="control-group">
-            <strong>Filter by Sensor Status:</strong>
-            <div style="margin-top: 8px;">
-                <select id="statusFilter" class="form-control">
-                    <option value="ALL">All Statuses</option>
-                    <option value="online">Online</option>
-                    <option value="repairing">Repairing</option>
-                    <option value="offline">Offline</option>
-                </select>
-            </div>
+            <label for="statusFilter" class="form-label fw-semibold">Sensor Status</label>
+            <select id="statusFilter" class="form-select">
+                <option value="ALL">All Statuses</option>
+                <option value="online">Online</option>
+                <option value="repairing">Repairing</option>
+                <option value="offline">Offline</option>
+            </select>
         </div>
+
         <div class="control-group">
-            <strong>Filter by Sensor Type:</strong>
-            <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px;">
+            <label class="form-label fw-semibold">Sensor Type</label>
+            <div class="d-flex flex-wrap gap-2 mt-2">
                 <div class="form-check">
                     <input class="form-check-input sensor-filter" type="checkbox" value="ALL" id="allTypes" checked>
                     <label class="form-check-label" for="allTypes">All Types</label>
@@ -142,12 +181,15 @@
                 @endforeach
             </div>
         </div>
-        <div class="control-group" style="align-self: end;">
-            <button id="resetFiltersBtn" class="btn btn-secondary" style="margin-top: 8px;">
-                Reset All Filters
+
+        {{-- <div class="control-group align-self-end">
+            <button id="resetFiltersBtn" class="btn btn-secondary w-100 mt-2">
+                Reset Filters
             </button>
-        </div>
+        </div> --}}
     </div>
+
+
     <div id="map-container" style="position: relative;">
         <div id="map"></div>
         <div class="legend-box" style="

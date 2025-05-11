@@ -3,7 +3,7 @@
 @section('title', 'GeoSwitch Dashboard') <!-- Set page title -->
 @section('page-title', 'GeoSwitch Dashboard')
 
-@section('breadcrumbs')
+{{-- @section('breadcrumbs')
 <x-breadcrumbs 
     title="Welcome to GeoSwitch Dashboard"
     :breadcrumbs="[
@@ -11,7 +11,7 @@
         ['url' => '', 'label' => 'Main Dashboard']
     ]"
 />
-@endsection
+@endsection --}}
 @push('after-styles')
 <!--Leaflet CSS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
@@ -81,27 +81,7 @@
             grid-template-columns: 1fr;
         }
     }
-    
-    .map-section {
-        background: white;
-        border-radius: 12px;
-        padding: 20px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        margin-top: 0px;
-    }
-    
-    .controls-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 20px;
-        margin-bottom: 10px;
-    }
-    
-    .control-group {
-        background: #f8f9fa;
-        padding: 15px;
-        border-radius: 8px;
-    }
+
     .status-cards {
         display: flex;
         gap: 16px;
@@ -110,10 +90,9 @@
         /* justify-content: space-between; */
     }
 
-    @media (max-width: 992px) {
+    @media (max-width: 1200px) {
         .status-card {
-            flex: 1 1 calc(50% - 16px); /* 2 cards per row on tablets */
-            max-width: calc(50% - 16px);
+            flex: 1 1 calc(50% - 16px); /* 2 cards on smaller desktops */
         }
     }
 
@@ -125,9 +104,9 @@
     }
         
     .status-card {
-        flex: 1 1 calc(25% - 12px); /* Fit 4 in a row minus gap */
+         flex: 1 1 calc(33.333% - 16px); /* 3 cards */
         min-width: 180px;
-        max-width: calc(25% - 12px); /* Ensures 4 cards per row */
+        max-width: calc(33.333% - 16px); /* Ensures 4 cards per row */
         background: white;
         padding: 15px;
         border-radius: 8px;
@@ -174,21 +153,7 @@
         margin-bottom: 0;
     }
 
-    .col-md-4 {
-        flex: 0 0 30%;
-        max-width: 30%;
-    }
-    .col-md-8 {
-        flex: 0 0 66%;
-        max-width: 66%;
-    }
-    @media (max-width: 768px) {
-        .col-md-4,
-        .col-md-8 {
-            flex: 0 0 100%;
-            max-width: 100%;
-        }
-    }
+    
 </style>
 @endpush
 
@@ -196,102 +161,42 @@
 
 @include('partial-dashboard.alert-popup')
 
-<h2>GeoSwitch Dashboard</h2>
+{{-- <h2>GeoSwitch Dashboard</h2> --}}
+{{-- <div class="d-flex justify-content-between align-items-center mb-4">
+    <p class="text-muted mb-0 mt-0">Welcome back, here's the latest system status and analytics overview.</p>
+    <span class="text-muted small">{{ now()->format('l, d M Y') }}</span>
+</div> --}}
 <div class="dashboard-container">
     <div class="dashboard-top row">
         {{-- Right: Status Cards --}}
-        <div class="col-md-8">
-            <div class="status-cards">
-                <div onclick="showOnlineSensors()" class="status-card cursor-pointer" style="border-left: 4px solid #4CAF50;">
-                    <div class="card-value">{{ $onlineCount ?? 0 }}</div>
-                    <div class="card-label">Online Sensors</div>
-                </div>
-    
-                <div onclick="showRepairingSensors()" class="status-card cursor-pointer" style="border-left: 4px solid #FFC107;">
-                    <div class="card-value">{{ $repairingCount ?? 0 }}</div>
-                    <div class="card-label">Repairing Sensors</div>
-                </div>
-    
-                <div onclick="showOfflineSensors()" class="status-card cursor-pointer" style="border-left: 4px solid #F44336;">
-                    <div class="card-value">{{ $offlineCount ?? 0 }}</div>
-                    <div class="card-label">Offline Sensors</div>
-                </div>
-                <div class="status-card" style="border-left: 4px solid #E67E22;"> 
-                    <div class="card-label" style="text-align: center; font-weight: 500; font-size: 14px;">
-                        Total Substations with Offline Sensors
-                    </div>
-                    <div class="card-value text-danger" style="text-align: center;">
-                        {{ $totalDefectSubstations }}
-                    </div>
-                </div>
+        <div class="status-cards">
+            <div onclick="showOnlineSensors()" class="status-card cursor-pointer" style="border-left: 4px solid #4CAF50;">
+                <div class="card-value">{{ $onlineCount ?? 0 }}</div>
+                <div class="card-label">Online Sensors</div>
             </div>
+
+            <div onclick="showRepairingSensors()" class="status-card cursor-pointer" style="border-left: 4px solid #FFC107;">
+                <div class="card-value">{{ $repairingCount ?? 0 }}</div>
+                <div class="card-label">Repairing Sensors</div>
+            </div>
+
+            <div onclick="showOfflineSensors()" class="status-card cursor-pointer" style="border-left: 4px solid #F44336;">
+                <div class="card-value">{{ $offlineCount ?? 0 }}</div>
+                <div class="card-label">Offline Sensors</div>
+            </div>
+            {{-- <div class="status-card" style="border-left: 4px solid #E67E22;"> 
+                <div class="card-label" style="text-align: center; font-weight: 500; font-size: 14px;">
+                    Total Substations with Offline Sensors
+                </div>
+                <div class="card-value text-danger" style="text-align: center;">
+                    {{ $totalDefectSubstations }}
+                </div>
+            </div> --}}
         </div>
     </div>
     @include('partial-dashboard.chart')
 
     @include('partial-dashboard.map')
-
-    <!-- Map Section -->
-    {{-- <div class="map-section">
-        <h3 style="margin-top: 0;">Substation Map</h3>
-        
-        <div class="controls-container">
-            <div class="control-group">
-                <label for="substationFilter"><strong>Substation:</strong></label>
-                <select id="substationFilter" class="form-control">
-                    <option value="all">All Substations</option>
-                    @foreach ($substations as $s)
-                        <option value="{{ $s->substation_name }}">{{ $s->substation_name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="control-group">
-                <strong>Filter by Sensor Status:</strong>
-                <div style="margin-top: 8px;">
-                    <select id="statusFilter" class="form-control">
-                        <option value="ALL">All Statuses</option>
-                        <option value="online">Online</option>
-                        <option value="repairing">Repairing</option>
-                        <option value="offline">Offline</option>
-                    </select>
-                </div>
-            </div>
-            <div class="control-group">
-                <strong>Filter by Sensor Type:</strong>
-                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px;">
-                    <div class="form-check">
-                        <input class="form-check-input sensor-filter" type="checkbox" value="ALL" id="allTypes" checked>
-                        <label class="form-check-label" for="allTypes">All Types</label>
-                    </div>
-                    @foreach(['Partial Discharge','Thermal'] as $type)
-                        <div class="form-check">
-                            <input class="form-check-input sensor-filter" type="checkbox" value="{{ $type }}" id="{{ Str::slug($type) }}">
-                            <label class="form-check-label" for="{{ Str::slug($type) }}">{{ $type }}</label>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-        <div id="map-container" style="position: relative;">
-            <div id="map"></div>
-            <div class="legend-box" style="
-                position: absolute;
-                bottom: 20px;
-                right: 20px;
-                z-index: 1000;
-                background: white;
-                padding: 10px 15px;
-                border-radius: 8px;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                max-width: 200px;
-            ">
-                <h4 style="margin-top: 0; font-size: 14px; margin-bottom: 8px;">Status Legend</h4>
-                <div id="legend-items"></div>
-            </div>
-        </div>
-    </div> --}}
-  
-
    
 
     <div id="sensor-summary-panel">
