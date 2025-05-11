@@ -26,6 +26,22 @@
         gap: 20px;
     }
     h2 {color: #2c3e50; font-weight: 600; margin-bottom: 20px;}
+
+    .chart-card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .chart-box {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
     .charts-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -70,13 +86,14 @@
         border-radius: 12px;
         padding: 20px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-top: 0px;
     }
     
     .controls-container {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
         gap: 20px;
-        margin-bottom: 20px;
+        margin-bottom: 10px;
     }
     
     .control-group {
@@ -85,13 +102,31 @@
         border-radius: 8px;
     }
     .status-cards {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 15px;
-        margin-bottom: 20px;
+        display: flex;
+        gap: 16px;
+        margin-bottom: 0; /* Remove space below */
+        flex-wrap: wrap;
+        /* justify-content: space-between; */
     }
-    
+
+    @media (max-width: 992px) {
+        .status-card {
+            flex: 1 1 calc(50% - 16px); /* 2 cards per row on tablets */
+            max-width: calc(50% - 16px);
+        }
+    }
+
+    @media (max-width: 576px) {
+        .status-card {
+            flex: 1 1 100%; /* Full width on mobile */
+            max-width: 100%;
+        }
+    }
+        
     .status-card {
+        flex: 1 1 calc(25% - 12px); /* Fit 4 in a row minus gap */
+        min-width: 180px;
+        max-width: calc(25% - 12px); /* Ensures 4 cards per row */
         background: white;
         padding: 15px;
         border-radius: 8px;
@@ -124,202 +159,76 @@
         border-radius: 12px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
-
-    .alert-popup {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        width: 350px;
-        background: white;
-        border: 1px solid #dc3545;
-        border-left: 6px solid #dc3545;
-        padding: 16px;
-        border-radius: 10px;
-        z-index: 9999;
-        animation: fadeIn 0.5s ease-in-out;
-    }
-
-    .popup-header {
+    .row {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 1rem;
-        margin-bottom: 8px;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-bottom: 20px;
     }
 
-    .popup-body {
-        font-size: 0.9rem;
-        color: #333;
-    }
-
-    .popup-footer {
-        margin-top: 10px;
+    .dashboard-top {
         display: flex;
-        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-bottom: 0;
     }
 
-    .close-btn {
-        background: none;
-        border: none;
-        font-size: 20px;
-        color: #dc3545;
-        cursor: pointer;
+    .col-md-4 {
+        flex: 0 0 30%;
+        max-width: 30%;
     }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-10px); }
-        to { opacity: 1; transform: translateY(0); }
+    .col-md-8 {
+        flex: 0 0 66%;
+        max-width: 66%;
     }
-
-    
-    /* #map {
-        height: 500px;
-        width: 100%;
-        border-radius: 12px;
+    @media (max-width: 768px) {
+        .col-md-4,
+        .col-md-8 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
     }
-    
-    .legend-box {
-        position: absolute;
-        bottom: 20px;
-        right: 20px;
-        z-index: 1000;
-        padding: 10px 15px;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        max-width: 200px;
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(2px);
-        border: 1px solid #eee;
-    }
-
-    .legend-item {
-        display: flex;
-        align-items: center;
-        margin: 5px 0;
-        font-size: 13px;
-        line-height: 1.4;
-    }
-
-    .legend-color {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        margin-right: 8px;
-        display: inline-block;
-        flex-shrink: 0;
-    }
-    .substation-marker {
-        transition: transform 0.2s ease;
-    }
-    .substation-marker:hover {
-        transform: scale(1.2) translateY(-5px);
-        z-index: 1000 !important;
-    }
-    
-    .sensor-marker {
-        transition: all 0.3s ease;
-    }
-    .sensor-marker:hover {
-        stroke: white;
-        stroke-width: 3px;
-        transform: scale(1.3);
-    }  */
-    
-    /* Pulse animation for alarm sensors */
-    /* .sensor-alarm {
-        animation: pulse 1.5s infinite;
-    }
-    
-    @keyframes pulse {
-        0% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.2); opacity: 0.8; }
-        100% { transform: scale(1); opacity: 1; }
-    }
-    #sensor-summary-panel {
-        position: fixed;
-        right: -320px;
-        top: 100px;
-        width: 300px;
-        background: #fff;
-        border-left: 1px solid #ccc;
-        box-shadow: -2px 0 6px rgba(0,0,0,0.1);
-        padding: 20px;
-        z-index: 2000;
-        height: auto;
-        transition: right 0.3s ease;
-    }
-    #sensor-summary-panel.active {
-        right: 20px;
-    }
-    #sensor-summary-panel h4 {
-        margin-top: 0;
-        font-size: 16px;
-        font-weight: 600;
-    }
-    #sensor-summary-panel .row {
-        margin-bottom: 10px;
-    }
-    #sensor-summary-panel .row label {
-        font-weight: 500;
-        display: block;
-        font-size: 14px;
-        color: #555;
-    }
-    #sensor-summary-panel .row span {
-        font-size: 14px;
-        color: #333;
-    } */
-
 </style>
 @endpush
 
 @section('content')
 
-<!-- Urgent Sensor Alert Popup -->
-{{-- <div id="offlineSensorPopup" class="alert-popup shadow-lg" style="display: none;">
-    <div class="popup-header">
-        <strong>🔴 Urgent Sensor Alert</strong>
-        <button onclick="closeOfflinePopup()" class="close-btn">&times;</button>
-    </div>
-    <div class="popup-body">
-        <p>There are <strong>{{ $offlineCount }}</strong> 🔴 <strong>OFFLINE sensors</strong> in the system.</p>
-        <ul>
-            @foreach ($offlineSummary as $item)
-                <li><strong>{{ $item['substation'] }}</strong> – {{ $item['sensor_type'] }} sensor (e.g., {{ $item['sensor_tag'] }})</li>
-            @endforeach
-        </ul>
-        <small>Last updated: {{ \Carbon\Carbon::now()->format('d M Y, h:i A') }}</small>
-    </div>
-    <div class="popup-footer">
-        <a href="{{ route('sensors.offline') }}" class="btn btn-danger btn-sm">View Affected Sensors</a>
-        <button onclick="closeOfflinePopup()" class="btn btn-secondary btn-sm">Dismiss</button>
-    </div>
-</div> --}}
+@include('partial-dashboard.alert-popup')
 
 <h2>GeoSwitch Dashboard</h2>
 <div class="dashboard-container">
-   <!-- Status Cards -->
-    <div class="status-cards">
-        <!-- Online -->
-        <div onclick="showOnlineSensors()" class="status-card cursor-pointer" style="border-left: 4px solid #4CAF50;">            
-            <div class="card-value" id="normal-count">{{ $onlineCount ?? 0 }}</div>
-            <div class="card-label">Online Sensors</div>
-        </div>
-
-        <!-- Repairing -->
-        <div onclick="showRepairingSensors()" class="status-card cursor-pointer" style="border-left: 4px solid #FFC107;">            
-            <div class="card-value" id="await-count">{{ $repairingCount ?? 0 }}</div>
-            <div class="card-label">Repairing Sensors</div>
-        </div>
-
-        <!-- Offline -->
-        <div onclick="showOfflineSensors()" class="status-card cursor-pointer" style="border-left: 4px solid #F44336;">            
-            <div class="card-value" id="alarm-count">{{ $offlineCount ?? 0 }}</div>
-            <div class="card-label">Offline Sensors</div>
+    <div class="dashboard-top row">
+        {{-- Right: Status Cards --}}
+        <div class="col-md-8">
+            <div class="status-cards">
+                <div onclick="showOnlineSensors()" class="status-card cursor-pointer" style="border-left: 4px solid #4CAF50;">
+                    <div class="card-value">{{ $onlineCount ?? 0 }}</div>
+                    <div class="card-label">Online Sensors</div>
+                </div>
+    
+                <div onclick="showRepairingSensors()" class="status-card cursor-pointer" style="border-left: 4px solid #FFC107;">
+                    <div class="card-value">{{ $repairingCount ?? 0 }}</div>
+                    <div class="card-label">Repairing Sensors</div>
+                </div>
+    
+                <div onclick="showOfflineSensors()" class="status-card cursor-pointer" style="border-left: 4px solid #F44336;">
+                    <div class="card-value">{{ $offlineCount ?? 0 }}</div>
+                    <div class="card-label">Offline Sensors</div>
+                </div>
+                <div class="status-card" style="border-left: 4px solid #E67E22;"> 
+                    <div class="card-label" style="text-align: center; font-weight: 500; font-size: 14px;">
+                        Total Substations with Offline Sensors
+                    </div>
+                    <div class="card-value text-danger" style="text-align: center;">
+                        {{ $totalDefectSubstations }}
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+    @include('partial-dashboard.chart')
 
-    
+    @include('partial-dashboard.map')
 
     <!-- Map Section -->
     {{-- <div class="map-section">
@@ -382,8 +291,20 @@
     </div> --}}
   
 
-    <!-- Charts Section -->
-    {{-- <div class="charts-grid">
+   
+
+    <div id="sensor-summary-panel">
+        <h4>Sensor Summary</h4>
+        <div class="row"><label>Tag:</label><span id="summary-tag">-</span></div>
+        <div class="row"><label>Type:</label><span id="summary-type">-</span></div>
+        <div class="row"><label>Status:</label><span id="summary-status">-</span></div>
+        <div class="row"><label>Panel:</label><span id="summary-panel">-</span></div>
+        <div class="row"><label>Substation:</label><span id="summary-substation">-</span></div>
+    </div>
+    @include('partial-dashboard.popup-sensor')
+
+     <!-- Charts Section -->
+     <div class="charts-grid">
         <div class="chart-container">
             <h3>Sensor Condition Analytics</h3>
             <canvas id="sensorConditionChart"></canvas>
@@ -398,18 +319,7 @@
             <h3>Sensor Performance</h3>
             <canvas id="sensorPerformanceChart"></canvas>
         </div>
-    </div> --}}
-
-    <div id="sensor-summary-panel">
-        <h4>Sensor Summary</h4>
-        <div class="row"><label>Tag:</label><span id="summary-tag">-</span></div>
-        <div class="row"><label>Type:</label><span id="summary-type">-</span></div>
-        <div class="row"><label>Status:</label><span id="summary-status">-</span></div>
-        <div class="row"><label>Panel:</label><span id="summary-panel">-</span></div>
-        <div class="row"><label>Substation:</label><span id="summary-substation">-</span></div>
     </div>
-    @include('partial-dashboard.popup-sensor')
-    @include('partial-dashboard.map')
 </div>
 @endsection
 
@@ -420,11 +330,9 @@
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <!-- Include Chart.js for Analytics -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+{{-- 
 <script>
-    // Show popup on page load
     window.addEventListener('DOMContentLoaded', function () {
-        // Only show if there are offline sensors
         const offlineCount = {{ $offlineCount }};
         if (offlineCount > 0 && !sessionStorage.getItem('popupDismissed')) {
             document.getElementById('offlineSensorPopup').style.display = 'block';
@@ -435,7 +343,39 @@
         document.getElementById('offlineSensorPopup').style.display = 'none';
         sessionStorage.setItem('popupDismissed', true);
     }
-</script>
+</script> --}}
+
+{{-- alert --}}
+{{-- <script>
+    window.addEventListener('DOMContentLoaded', function () {
+        const popupOverlay = document.getElementById('popupOverlay');
+        const popup = document.getElementById('offlineSensorPopup');
+
+        console.log("Popup script running. Offline count: {{ $offlineCount }}");
+
+        if (!popup) {
+            console.warn("Popup element NOT FOUND in DOM");
+        } else {
+            console.log("Popup element FOUND in DOM");
+        }
+
+        if (popupOverlay && !sessionStorage.getItem('popupDismissed')) {
+            popupOverlay.style.display = 'flex'; // make sure overlay is visible
+            console.log("Popup displayed.");
+        }
+    });
+
+    function closeOfflinePopup() {
+        const popupOverlay = document.getElementById('popupOverlay');
+        if (popupOverlay) {
+            popupOverlay.style.display = 'none';
+            sessionStorage.setItem('popupDismissed', true);
+        }
+    }
+</script> --}}
+
+
+
 
 {{-- latest script map --}}
 {{-- <script>

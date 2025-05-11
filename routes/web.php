@@ -34,9 +34,12 @@ Route::prefix('reports')->group(function () {
     Route::match(['get', 'post'], '/sensor-status', [ReportController::class, 'sensorStatusSummary'])
         ->name('reports.sensor-status');
 });
-Route::resource('sensors', SensorController::class)->middleware('auth');
+// Route::resource('sensors', SensorController::class)->middleware('auth');
+Route::resource('sensors', SensorController::class);
 
-// Route::get('/sensors/manage', [\App\Http\Controllers\SensorController::class, 'manage'])->name('sensors.manage');
+// Route::get('/sensors/manage', [\App\Http\Controllers\SensorController::class, 'man'])->name('sensors.view');
+Route::get('/sensors/manage/{sensor}', [SensorController::class, 'show'])->name('sensors.view');
+
 // Route::post('/sensors/update-status/{sensor}', [\App\Http\Controllers\SensorController::class, 'updateStatus'])->name('sensors.updateStatus');
 
 

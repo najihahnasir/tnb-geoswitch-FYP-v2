@@ -98,7 +98,7 @@
         <!-- ============================================================== -->
         <div class="page-wrapper" id="app">
 
-            @yield('breadcrumb')
+            {{-- @yield('breadcrumb') --}}
 
             {{-- <div class="page-breadcrumb">
                 <div class="row mb-2">
