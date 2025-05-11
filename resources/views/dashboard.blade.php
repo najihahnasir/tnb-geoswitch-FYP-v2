@@ -1,6 +1,7 @@
 @extends('layouts.master') <!-- Extend the base layout -->
 
 @section('title', 'GeoSwitch Dashboard') <!-- Set page title -->
+@section('page-title', 'GeoSwitch Dashboard')
 
 @section('breadcrumbs')
 <x-breadcrumbs 

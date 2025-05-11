@@ -98,9 +98,9 @@
         <!-- ============================================================== -->
         <div class="page-wrapper" id="app">
 
-            {{-- @yield('breadcrumb') --}}
+            @yield('breadcrumb')
 
-            {{-- <div class="page-breadcrumb">
+            <div class="page-breadcrumb">
                 <div class="row mb-2">
                     <div class="col-5 align-self-center">
                         <h4 class="page-title">@yield('page-title', 'Default Page Title')</h4>
@@ -133,7 +133,7 @@
                         </nav>
                     </div>
                 </div>
-            </div> --}}
+            </div>
 
             <!-- ============================================================== -->
             <!-- Container fluid  -->

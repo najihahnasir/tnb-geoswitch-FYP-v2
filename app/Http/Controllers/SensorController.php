@@ -45,6 +45,10 @@ class SensorController extends Controller
         $sensorTag = $request->input('sensor');
         $sensorType = $request->input('type');
 
+        $onlineCount = Sensor::where('status', 'online')->count();
+        $repairingCount = Sensor::where('status', 'repairing')->count();
+        $offlineCount = Sensor::where('status', 'offline')->count();
+
         $query = Sensor::with('switchgear.substation');
 
         if (in_array($filter, ['online', 'offline', 'repairing'])) {
@@ -69,13 +73,18 @@ class SensorController extends Controller
         $substations = \App\Models\Substation::all(); // ✅ Add this
         $sensorTypes = Sensor::select('type')->distinct()->pluck('type');
 
-        return view('sensors.manage', compact('sensors', 'filter', 'substations', 'substationId', 'sensorTag', 'sensorTypes'));
+        return view('sensors.manage', compact(
+            'sensors', 
+            'filter', 
+            'substations', 
+            'substationId', 
+            'sensorTag', 
+            'sensorTypes',
+            'onlineCount',
+            'repairingCount',
+            'offlineCount'
+        ));
     }
-
-
-
-    
-
 
     /**
      * Show the form for creating a new resource.
