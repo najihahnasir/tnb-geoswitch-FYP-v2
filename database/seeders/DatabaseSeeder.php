@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             SwitchgearSeeder::class,
             SensorSeeder::class,
             SensorMeasurementSeeder::class,
+            SensorStatusHistorySeeder::class
         ]);
 
         User::create([

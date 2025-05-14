@@ -13,6 +13,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DatasetController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SensorController;
+use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\SensorAnalyticsController;
 
 
 
@@ -24,8 +26,7 @@ Route::get('/', function () {
 Route::get('/datasets/upload', [DatasetController::class, 'showUploadForm'])->name('datasets.upload.form');
 Route::post('/datasets/upload', [DatasetController::class, 'handleUpload'])->name('datasets.upload');
 Route::resource('academicians', AcademicianController::class);
-// Route::get('/reports/sensor-status-summary', [ReportController::class, 'sensorStatusSummary'])->name('reports.sensor-status');
-// Route::post('/reports/sensor-status', [ReportController::class, 'sensorStatusSummary']);
+
 
 Route::prefix('reports')->group(function () {
     Route::get('/', [ReportController::class, 'index'])->name('reports.index');
@@ -33,6 +34,7 @@ Route::prefix('reports')->group(function () {
     // Single endpoint for all report actions
     Route::match(['get', 'post'], '/sensor-status', [ReportController::class, 'sensorStatusSummary'])
         ->name('reports.sensor-status');
+    Route::get('/analytics/export', [ReportController::class, 'exportSensorAnalytics'])->name('analytics.export');
 });
 // Route::resource('sensors', SensorController::class)->middleware('auth');
 Route::resource('sensors', SensorController::class);
@@ -41,6 +43,10 @@ Route::resource('sensors', SensorController::class);
 Route::get('/sensors/manage/{sensor}', [SensorController::class, 'show'])->name('sensors.view');
 
 // Route::post('/sensors/update-status/{sensor}', [\App\Http\Controllers\SensorController::class, 'updateStatus'])->name('sensors.updateStatus');
+// Route::get('/analytics', [AnalyticsController::class, 'substations'])->name('analytics.substations');
+Route::get('/analytics/substations', [AnalyticsController::class, 'substation'])->name('analytics.substations');
+Route::get('/analytics/sensors', [SensorAnalyticsController::class, 'index'])->name('analytics.sensors');
+
 
 
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Substation;
 use App\Models\Sensor;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\SensorStatusExport;
@@ -148,5 +149,41 @@ class ReportController extends Controller
         // Regular HTML response
         return view('reports.sensor-status', compact('data', 'filters'));
     }
+
+    public function exportSensorAnalytics(Request $request)
+    {
+        $histories = DB::table('sensor_status_histories')
+            ->join('sensors', 'sensor_status_histories.sensor_id', '=', 'sensors.id')
+            ->join('switchgears', 'sensors.switchgear_id', '=', 'switchgears.id')
+            ->join('substations', 'switchgears.substation_id', '=', 'substations.id')
+            ->selectRaw('sensors.type, sensors.status, substations.substation_name,
+                        COUNT(*) as failures, YEAR(sensor_status_histories.created_at) as year,
+                        MONTH(sensor_status_histories.created_at) as month')
+            ->groupBy('sensors.type', 'sensors.status', 'substations.substation_name', 'year', 'month')
+            ->get();
+
+        $grouped = $histories->groupBy('substation_name');
+
+        $data = $grouped->map(function ($list, $substation) {
+            return [
+                'Substation' => $substation,
+                'Partial Discharge' => $list->where('type', 'Partial Discharge')->sum('failures'),
+                'Thermal' => $list->where('type', 'Thermal')->sum('failures'),
+                'Total Failures' => $list->sum('failures'),
+            ];
+        })->values()->toArray();
+
+        if ($request->export === 'pdf') {
+            $pdf = Pdf::loadView('analytics.export-summary', ['data' => $data]);
+            return $pdf->stream('sensor-analytics.pdf');
+        }
+
+        if (in_array($request->export, ['excel', 'csv'])) {
+            return Excel::download(new SensorStatusExport($data), 'sensor-analytics.' . $request->export);
+        }
+
+        return back()->with('error', 'Invalid export format');
+    }
+
 
 }

@@ -90,15 +90,15 @@
                     </a>
                     <ul aria-expanded="false" class="collapse first-level">
                         <li class="sidebar-item">
-                            <a href="#" class="sidebar-link">
+                            <a href="{{ route('analytics.substations') }}" class="sidebar-link">
                                 <i class="mdi mdi-adjust"></i>
-                                <span class="hide-menu">Analytics Chart </span>
+                                <span class="hide-menu">Substation Analytics </span>
                             </a>
                         </li>
                         <li class="sidebar-item">
-                            <a href="#" class="sidebar-link">
+                            <a href="{{ route('analytics.sensors') }}" class="sidebar-link">
                                 <i class="mdi mdi-adjust"></i>
-                                <span class="hide-menu">Generate Report</span>
+                                <span class="hide-menu">Sensor Analytics</span>
                             </a>
                         </li>
                     </ul>
