@@ -215,8 +215,12 @@
 
     <div id="map"></div> --}}
     </div>
+    
     <div id="sensor-summary-panel">
-        <h4>Sensor Summary</h4>
+        {{-- <button class="close-btn" onclick="closeSensorSummaryPanel()">✖</button> --}}
+        <button class="close-btn" id="summary-close-btn">✖</button>
+        <h5>Sensor Summary</h5>
+
         <div class="row"><label>Tag:</label><span id="summary-tag">-</span></div>
         <div class="row"><label>Type:</label><span id="summary-type">-</span></div>
         <div class="row"><label>Status:</label><span id="summary-status">-</span></div>
@@ -497,11 +501,19 @@
             }
         }
 
-        // Update status cards
         function updateStatusCards() {
-            document.getElementById('normal-count').textContent = statusCounts.online || 0;
-            document.getElementById('await-count').textContent = statusCounts.repairing || 0;
-            document.getElementById('alarm-count').textContent = statusCounts.offline || 0;
+            const online = document.getElementById('online');
+            const repairing = document.getElementById('repairing');
+            const offline = document.getElementById('offline');
+
+            if (!online || !repairing || !offline) {
+                // These elements don't exist (probably not on dashboard), skip update
+                return;
+            }
+
+            online.textContent = statusCounts.online || 0;
+            repairing.textContent = statusCounts.repairing || 0;
+            offline.textContent = statusCounts.offline || 0;
         }
 
         // Update legend
@@ -534,10 +546,16 @@
         function updateSensorSummaryPanel(sensor) {
             document.getElementById('summary-tag').textContent = sensor.tag || '-';
             document.getElementById('summary-type').textContent = sensor.type || '-';
-            document.getElementById('summary-status').textContent = sensor.latest_measurement?.status || '-';
+            document.getElementById('summary-status').textContent = sensor.status || '-';
             document.getElementById('summary-panel').textContent = sensor.switchgear?.panel || '-';
             document.getElementById('summary-substation').textContent = sensor.switchgear?.substation?.substation_name || '-';
-            document.getElementById('sensor-summary-panel').classList.add('active');
+
+            function closeSensorSummaryPanel() {
+                document.getElementById('sensor-summary-panel').classList.remove('active');
+            }
+
+            // Add the event listener here (NEW CODE)
+            document.getElementById('summary-close-btn').addEventListener('click', closeSensorSummaryPanel);
         }
 
         // Render sensor markers based on filters
@@ -566,6 +584,9 @@
                 const matchStatus = selectedStatus === 'ALL' || 
                     status === selectedStatus.toLowerCase();
 
+                console.log(`Sensor ${sensor.tag} in ${sub?.substation_name} → Status: ${status}, Type: ${type}`);
+
+                
                 if (matchSubstation && matchType && matchStatus) {
                     const latNum = parseFloat(sub?.latitude);
                     const lngNum = parseFloat(sub?.longitude);
@@ -614,18 +635,58 @@
             markers.forEach(marker => map.removeLayer(marker));
             markers = [];
 
-            data.forEach(sub => {
-                const sensorCount = sensors.filter(s => 
-                    s.switchgear?.substation?.substation_name === sub.substation_name
-                ).length;
+            // data.forEach(sub => {
+            //     const sensorCount = sensors.filter(s => 
+            //         s.switchgear?.substation?.substation_name === sub.substation_name
+            //     ).length;
                 
+            //     const marker = L.marker([parseFloat(sub.latitude), parseFloat(sub.longitude)], {
+            //         icon: new L.Icon.Default()
+            //     }).bindPopup(`
+            //         <b>${sub.substation_name}</b><br>
+            //         ${sub.substation_location}<br>
+            //         <small>Sensors: ${sensorCount}</small>
+            //     `).addTo(map);
+
+            //     markers.push(marker);
+            // });
+            data.forEach(sub => {
+                const sensorsAtSub = sensors.filter(s =>
+                    s.switchgear?.substation?.substation_name === sub.substation_name
+                );
+
+                const sensorCount = sensorsAtSub.length;
+
+                // Map sensor type to its status
+                const sensorDetails = sensorsAtSub.map(s => {
+                    const type = s.type || 'Unknown';
+                    const status = s.status?.toLowerCase() || 'unknown';
+                    const color = status === 'online' ? '#2ecc71' :
+                                status === 'repairing' ? '#f39c12' :
+                                status === 'offline' ? '#e74c3c' : '#ccc';
+                    return `<li>${type}: <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};margin:0 6px 0 4px;"></span>${status}</li>`;
+                }).join('');
+
+                // const popupContent = `
+                //     <b>${sub.substation_name}</b><br>
+                //     <strong>Total Sensors: ${sensorCount}</strong><br>
+                //     <strong>Types:</strong><ul style="padding-left: 16px; margin: 5px 0;">${sensorDetails}</ul>
+                // `;
+                const popupContent = `
+                    <div style="min-width: 180px;">
+                        <div style="font-weight: 600; font-size: 14px; margin-bottom: 2px;">📍 ${sub.substation_name}</div>
+                        <div style="font-size: 13px; margin-bottom: 2px;">
+                            <strong>Total Sensors:</strong> ${sensorCount}
+                        </div>
+                        <div style="font-size: 13px;"><strong></strong></div>
+                        <ul style="list-style: none; padding: 0; margin: 5px 0; font-size: 13px;">
+                            ${sensorDetails}
+                        </ul>
+                    </div>
+                `;
                 const marker = L.marker([parseFloat(sub.latitude), parseFloat(sub.longitude)], {
                     icon: new L.Icon.Default()
-                }).bindPopup(`
-                    <b>${sub.substation_name}</b><br>
-                    ${sub.substation_location}<br>
-                    <small>Sensors: ${sensorCount}</small>
-                `).addTo(map);
+                }).bindPopup(popupContent).addTo(map);
 
                 markers.push(marker);
             });

@@ -40,6 +40,8 @@ class SensorController extends Controller
 
     public function index(Request $request)
     {
+        $sensors = Sensor::with(['switchgear.substation'])->get();
+
         $filter = $request->input('filter');
         $substationId = $request->input('substation');
         $sensorTag = $request->input('sensor');
