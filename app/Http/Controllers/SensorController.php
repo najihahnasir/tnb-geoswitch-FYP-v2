@@ -51,17 +51,26 @@ class SensorController extends Controller
         $repairingCount = Sensor::where('status', 'repairing')->count();
         $offlineCount = Sensor::where('status', 'offline')->count();
 
+        $substationName = $request->input('substation');
+        
+
         $query = Sensor::with('switchgear.substation');
 
         if (in_array($filter, ['online', 'offline', 'repairing'])) {
             $query->where('status', $filter);
         }
 
-        if ($substationId) {
-            $query->whereHas('switchgear.substation', function ($q) use ($substationId) {
-                $q->where('id', $substationId);
-            });
-        }
+        // if ($substationId) {
+        //     $query->whereHas('switchgear.substation', function ($q) use ($substationId) {
+        //         $q->where('id', $substationId);
+        //     });
+        // }
+
+        if ($substationName) {
+        $query->whereHas('switchgear.substation', function ($q) use ($substationName) {
+            $q->where('substation_name', $substationName);
+        });
+}
 
         if ($sensorTag) {
             $query->where('tag', 'like', '%' . $sensorTag . '%');

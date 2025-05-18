@@ -158,8 +158,8 @@
 @endpush
 
 @section('content')
-
 @include('partial-dashboard.alert-popup')
+
 
 {{-- <h2>GeoSwitch Dashboard</h2> --}}
 {{-- <div class="d-flex justify-content-between align-items-center mb-4">

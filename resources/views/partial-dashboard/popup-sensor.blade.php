@@ -54,59 +54,124 @@
 @endpush
 
 <div>
-     <!-- Background dimmer -->
+    <!-- Background dimmer -->
     <div id="popupOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden" onclick="closeStatusPopup()"></div>
 
     <!-- Popup Section -->
     <div id="statusPopup" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
-    bg-white p-6 rounded-lg shadow-lg z-[9999] max-w-3xl w-[90%] hidden">
-    <div class="flex justify-between items-center mb-4">
+        bg-white p-6 rounded-lg shadow-lg z-[9999] max-w-3xl w-[90%] hidden">
+        <div class="flex justify-between items-center mb-4">
             <h3 id="popupTitle" class="text-lg font-bold">Status Detail</h3>
-            <button onclick="closeStatusPopup()" class="text-gray-500 text-xl hover:text-red-600">×</button>
+            <button onclick="closeStatusPopup()" class="text-gray-500 text-xl hover:text-red-600">&times;</button>
         </div>
         <div id="popupContent">
             <!-- Sensor info will be injected here -->
         </div>
     </div>
 
+    <!-- ONLINE TEMPLATE -->
     <div id="onlineSensorTemplate" style="display: none; visibility: hidden;">
-        {{-- Blade-only content for popup, not rendered on screen --}}
-        <div class="space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                @foreach($onlineSensors as $sensor)
-                <div class="border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h3 class="font-bold text-lg text-blue-600">{{ $sensor->tag }}</h3>
-                            <p class="text-sm text-gray-600">{{ $sensor->type }} Sensor</p>
-                        </div>
-                        <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-                            {{ ucfirst($sensor->status) }}
+        <div class="space-y-6">
+            @php
+                $grouped = $onlineSensors->groupBy(fn($s) => $s->switchgear->substation->substation_name ?? 'Unknown');
+            @endphp
+
+            @foreach($grouped as $substation => $sensors)
+                <div class="border rounded-lg p-4 shadow-sm">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-semibold text-blue-700">📍 {{ $substation }}</h3>
+                        <span class="text-xs bg-green-100 text-green-700 font-medium px-2 py-1 rounded-full">
+                            {{ $sensors->count() }} Online
                         </span>
                     </div>
-    
-                    <div class="mt-3 space-y-1 text-sm">
-                        <div class="flex items-center">
-                            📍 {{ $sensor->switchgear->substation->substation_name ?? 'Unknown' }}
-                        </div>
-                        <div class="flex items-center">
-                            ⚡ Panel: {{ $sensor->switchgear->panel ?? 'Unknown' }}
-                        </div>
-                        <div class="flex items-center">
-                            🕒 Updated: {{ $sensor->updated_at->format('M j, Y H:i') }}
-                        </div>
-                    </div>
-    
-                    <div class="mt-4 pt-3 border-t text-right">
-                        <a href="{{ route('sensors.index', ['status' => 'online']) }}" 
-                           class="text-blue-600 hover:underline text-sm">View Details →</a>
+
+                    <ul class="text-sm text-gray-700 space-y-2">
+                        @foreach($sensors as $sensor)
+                            <li class="flex justify-between">
+                                <span><strong>{{ $sensor->tag }}</strong> ({{ $sensor->type }})</span>
+                                <span class="text-green-700 text-xs font-semibold">{{ ucfirst($sensor->status) }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
+
+                    <div class="mt-3 text-right">
+                        <a href="{{ route('sensors.index', ['filter' => 'online', 'substation' => $substation]) }}"
+                           class="text-blue-600 hover:underline text-xs">View more →</a>
                     </div>
                 </div>
-                @endforeach
-            </div>
+            @endforeach
+        </div>
+    </div>
+
+    <!-- REPAIRING TEMPLATE -->
+    <div id="repairingSensorTemplate" style="display: none; visibility: hidden;">
+        <div class="space-y-6">
+            @php
+                $grouped = $repairingSensors->groupBy(fn($s) => $s->switchgear->substation->substation_name ?? 'Unknown');
+            @endphp
+
+            @foreach($grouped as $substation => $sensors)
+                <div class="border rounded-lg p-4 shadow-sm">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-semibold text-yellow-700">📍 {{ $substation }}</h3>
+                        <span class="text-xs bg-yellow-100 text-yellow-800 font-medium px-2 py-1 rounded-full">
+                            {{ $sensors->count() }} Repairing
+                        </span>
+                    </div>
+
+                    <ul class="text-sm text-gray-700 space-y-2">
+                        @foreach($sensors as $sensor)
+                            <li class="flex justify-between">
+                                <span><strong>{{ $sensor->tag }}</strong> ({{ $sensor->type }})</span>
+                                <span class="text-yellow-800 text-xs font-semibold">{{ ucfirst($sensor->status) }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
+
+                    <div class="mt-3 text-right">
+                        <a href="{{ route('sensors.index', ['filter' => 'repairing', 'substation' => $substation]) }}"
+                           class="text-yellow-600 hover:underline text-xs">View more →</a>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+
+    <!-- OFFLINE TEMPLATE -->
+    <div id="offlineSensorTemplate" style="display: none; visibility: hidden;">
+        <div class="space-y-6">
+            @php
+                $grouped = $offlineSensors->groupBy(fn($s) => $s->switchgear->substation->substation_name ?? 'Unknown');
+            @endphp
+
+            @foreach($grouped as $substation => $sensors)
+                <div class="border rounded-lg p-4 shadow-sm">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-semibold text-red-700">📍 {{ $substation }}</h3>
+                        <span class="text-xs bg-red-100 text-red-700 font-medium px-2 py-1 rounded-full">
+                            {{ $sensors->count() }} Offline
+                        </span>
+                    </div>
+
+                    <ul class="text-sm text-gray-700 space-y-2">
+                        @foreach($sensors as $sensor)
+                            <li class="flex justify-between">
+                                <span><strong>{{ $sensor->tag }}</strong> ({{ $sensor->type }})</span>
+                                <span class="text-red-700 text-xs font-semibold">{{ ucfirst($sensor->status) }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
+
+                    <div class="mt-3 text-right">
+                        <a href="{{ route('sensors.index', ['filter' => 'offline', 'substation' => $substation]) }}"
+                           class="text-red-600 hover:underline text-xs">View more →</a>
+                    </div>
+                </div>
+            @endforeach
         </div>
     </div>
 </div>
+
 
 @push('after-scripts')
 <script>
@@ -143,20 +208,18 @@
     
 
     function showRepairingSensors() {
-        const html = `
-            <ul class="list-disc pl-5">
-                @foreach($repairingSensors as $sensor)
-                    <li>{{ $sensor->tag }} – {{ $sensor->switchgear->substation->substation_name ?? '-' }}</li>
-                @endforeach
-            </ul>
-            <a href="{{ route('sensors.index', ['status' => 'repairing']) }}" class="text-blue-500 hover:underline text-sm block mt-2">View all</a>
-        `;
+        const html = document.getElementById('repairingSensorTemplate').innerHTML;
         openStatusPopup('Repairing Sensors', html);
     }
 
     function showOnlineSensors() {
         const html = document.getElementById('onlineSensorTemplate').innerHTML;
         openStatusPopup('Online Sensors', html);
+    }
+
+    function showOfflineSensors() {
+        const html = document.getElementById('offlineSensorTemplate').innerHTML;
+        openStatusPopup('Offline Sensors', html);
     }
 
 </script>
