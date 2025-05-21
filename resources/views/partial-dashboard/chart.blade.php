@@ -52,7 +52,7 @@
                     </select>
                 </div>
             </div>
-            <div style="max-height: 220px; overflow-y: auto;">
+            <div style="max-height: 230px; overflow-y: auto;">
                 <canvas id="substationChart" style="width: 100%; height: auto;"></canvas>
             </div>
         </div>
@@ -64,7 +64,7 @@
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <h5 class="chart-title mb-0">Sensor Severity</h5>
             </div>
-            <div style="position: relative; height: 220px; width: 100%;">
+            <div style="position: relative; height: 235px; width: 100%;">
                 <canvas id="severityChart"></canvas>
             </div>
         </div>
