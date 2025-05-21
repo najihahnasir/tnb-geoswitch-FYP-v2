@@ -194,5 +194,7 @@
 
     <!-- Stack JavaScript-->
     @stack('after-scripts')
+    @stack('global-popup')
+
 </body>
 </html>

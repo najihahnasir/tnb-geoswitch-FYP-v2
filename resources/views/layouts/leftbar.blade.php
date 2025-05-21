@@ -46,13 +46,19 @@
                     </ul> --}}
                     <ul aria-expanded="false" class="collapse first-level">
                         <li class="sidebar-item">
-                            <a href="{{ route('reports.index') }}" class="sidebar-link">
+                            <a href="{{ route('substations.summary') }}" class="sidebar-link">
                                 <i class="mdi mdi-eye"></i>
                                 <span class="hide-menu"> Substation Summary </span>
                             </a>
                         </li>
+                        {{-- <li class="sidebar-item">
+                            <a href="{{ route('reports.index') }}" class="sidebar-link">
+                                <i class="mdi mdi-eye"></i>
+                                <span class="hide-menu"> Substation Report </span>
+                            </a>
+                        </li> --}}
                         <li class="sidebar-item">
-                            <a href="#" class="sidebar-link" target="_blank">
+                            <a href="{{ route('substations.create') }}" class="sidebar-link">
                                 <i class="mdi mdi-hospital-building"></i>
                                 <span class="hide-menu"> Register New Substation</span>
                             </a>
@@ -105,12 +111,12 @@
                 </li>
 
                 <!-- Example of a single menu item -->
-                <li class="sidebar-item">
+                {{-- <li class="sidebar-item">
                     <a class="sidebar-link waves-effect waves-dark" href="{{ route('datasets.upload.form') }}" aria-expanded="false">
                         <i class="ri-file-mark-line"></i>
                         <span class="hide-menu">Upload </span>
                     </a>
-                </li>
+                </li> --}}
 
                 <!-- Example of a dropdown menu -->
                 <li class="sidebar-item">

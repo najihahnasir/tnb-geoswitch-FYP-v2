@@ -109,4 +109,33 @@ class DashboardController extends Controller
         ];
         return view ('dashboard', compact('substations'));
     }
+
+    public function substationMap($id)
+    {
+        $substation = Substation::with(['switchgears.sensors'])->findOrFail($id);
+
+        $substationData = [
+            'id' => $substation->id,
+            'name' => $substation->substation_name,
+            'latitude' => $substation->latitude,
+            'longitude' => $substation->longitude,
+        ];
+
+        $sensorData = $substation->switchgears->flatMap->sensors->map(function ($sensor) {
+            return [
+                'tag' => $sensor->tag,
+                'type' => $sensor->type,
+                'status' => $sensor->status,
+                'panel' => $sensor->switchgear->panel ?? 'Unknown',
+                'lat' => $sensor->latitude ?? $sensor->switchgear->latitude,
+                'lng' => $sensor->longitude ?? $sensor->switchgear->longitude,
+            ];
+        });
+
+        return view('substations.view-map', [  // ✅ correct blade path
+            'substation' => (object) $substationData,  // ✅ this ensures Blade can use -> notation
+            'sensors' => $sensorData
+        ]);
+    }
+
 }
