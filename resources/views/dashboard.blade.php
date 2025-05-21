@@ -158,8 +158,20 @@
 @endpush
 
 @section('content')
-@include('partial-dashboard.alert-popup')
 
+{{-- @push('global-popup')
+    @include('partial-dashboard.alert-popup')
+@endpush --}}
+
+{{-- @include('partial-dashboard.alert-popup')
+<button onclick="alert('JS works')">Test JS</button>
+
+TEMPORARY BUTTON FOR TESTING
+ <div class="my-3">
+        <button class="btn btn-warning" onclick="document.getElementById('popupOverlay').style.display = 'flex';">
+            TEST SHOW POPUP
+        </button>
+    </div> --}}
 
 {{-- <h2>GeoSwitch Dashboard</h2> --}}
 {{-- <div class="d-flex justify-content-between align-items-center mb-4">
@@ -197,6 +209,8 @@
     @include('partial-dashboard.chart')
 
     @include('partial-dashboard.map')
+
+    @include('partial-dashboard.popup-sensor')
    
 
     <div id="sensor-summary-panel">
@@ -207,10 +221,10 @@
         <div class="row"><label>Panel:</label><span id="summary-panel">-</span></div>
         <div class="row"><label>Substation:</label><span id="summary-substation">-</span></div>
     </div>
-    @include('partial-dashboard.popup-sensor')
+    
 
      <!-- Charts Section -->
-     <div class="charts-grid">
+    {{-- <div class="charts-grid">
         <div class="chart-container">
             <h3>Sensor Condition Analytics</h3>
             <canvas id="sensorConditionChart"></canvas>
@@ -225,9 +239,78 @@
             <h3>Sensor Performance</h3>
             <canvas id="sensorPerformanceChart"></canvas>
         </div>
+    </div> --}}
+
+    {{-- Offline Sensor Alert Modal --}}
+    <div class="modal fade" id="offlineSensorModal" tabindex="-1" aria-labelledby="offlineSensorModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-danger text-white d-flex align-items-center">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <h5 class="modal-title mb-0" style="align-items: center" id="offlineSensorModalLabel">Urgent: Offline Sensors Detected</h5>
+                    <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="fs-6">There are <strong>{{ $offlineCount }}</strong> sensors currently <span class="text-danger">offline</span> in the system.</p>
+                    <div class="mb-3">
+                        <ul class="list-group list-group-flush">
+                            @foreach($offlineSummary as $item)
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="fw-semibold text-dark">
+                                        <i class="fas fa-bolt me-1 text-warning"></i>{{ $item['substation'] }}
+                                    </div>
+                                    <div class="text-muted small text-end">
+                                        <div>{{ $item['sensor_type'] }}</div>
+                                        <div class="text-dark">({{ $item['sensor_tag'] }})</div>
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                    <p class="text-muted small mb-0">Last updated: {{ now()->format('d M Y, h:i A') }}</p>
+                </div>
+                <div class="modal-footer bg-light border-0">
+                    <a href="{{ route('sensors.index', ['filter' => 'offline']) }}" class="btn btn-danger">
+                        <i class="fas fa-eye me-1"></i> View All Offline Sensors
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i> Dismiss
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+
+
+
+
+
 @endsection
+
+{{-- @push('after-scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const popup = document.getElementById('popupOverlay');
+        const offlineCount = {{ $offlineCount }};
+
+        if (popup && offlineCount > 0 && !sessionStorage.getItem('popupDismissed')) {
+            popup.classList.remove('hidden');
+            popup.classList.add('flex');
+        }
+    });
+
+    function closeOfflinePopup() {
+        const popup = document.getElementById('popupOverlay');
+        if (popup) {
+            popup.classList.remove('flex');
+            popup.classList.add('hidden');
+            sessionStorage.setItem('popupDismissed', true);
+        }
+    }
+</script>
+@endpush --}}
 
 @push('after-scripts')
 <!--Leaflet JS -->
@@ -236,6 +319,20 @@
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <!-- Include Chart.js for Analytics -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const offlineCount = {{ $offlineCount }};
+        if (offlineCount > 0 && !sessionStorage.getItem('sensorAlertDismissed')) {
+            const modal = new bootstrap.Modal(document.getElementById('offlineSensorModal'));
+            modal.show();
+
+            document.getElementById('offlineSensorModal')
+                .addEventListener('hidden.bs.modal', () => sessionStorage.setItem('sensorAlertDismissed', true));
+        }
+    });
+</script>
+
 {{-- 
 <script>
     window.addEventListener('DOMContentLoaded', function () {
