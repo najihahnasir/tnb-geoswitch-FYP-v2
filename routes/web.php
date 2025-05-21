@@ -13,6 +13,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DatasetController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SensorController;
+use App\Http\Controllers\SubstationController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\SensorAnalyticsController;
 
@@ -39,6 +40,14 @@ Route::prefix('reports')->group(function () {
 // Route::resource('sensors', SensorController::class)->middleware('auth');
 Route::resource('sensors', SensorController::class);
 
+Route::get('/api/switchgears/by-substation/{substation}', function ($substationId) {
+    return \App\Models\Switchgear::where('substation_id', $substationId)->get(['id', 'panel']);
+});
+// Route::get('/api/switchgears/by-substation/{id}', function ($id) {
+//     return \App\Models\Switchgear::where('substation_id', $id)->get(['id', 'panel', 'latitude', 'longitude']);
+// });
+
+
 // Route::get('/sensors/manage', [\App\Http\Controllers\SensorController::class, 'man'])->name('sensors.view');
 Route::get('/sensors/manage/{sensor}', [SensorController::class, 'show'])->name('sensors.view');
 
@@ -46,6 +55,25 @@ Route::get('/sensors/manage/{sensor}', [SensorController::class, 'show'])->name(
 // Route::get('/analytics', [AnalyticsController::class, 'substations'])->name('analytics.substations');
 Route::get('/analytics/substations', [AnalyticsController::class, 'substation'])->name('analytics.substations');
 Route::get('/analytics/sensors', [SensorAnalyticsController::class, 'index'])->name('analytics.sensors');
+
+// All fixed substation routes
+Route::get('/substations/summary', [SubstationController::class, 'summary'])->name('substations.summary');
+Route::get('/substations/create', [SubstationController::class, 'create'])->name('substations.create');
+
+// Resource route
+Route::resource('substations', SubstationController::class);
+
+// Other dynamic substation route (optional override)
+Route::get('/substations/{substation}', [SubstationController::class, 'show'])->name('substation.show');
+
+
+
+Route::get('/popup-test', function () {
+    return view('partial-dashboard.alert-popup');
+});
+
+
+
 
 
 

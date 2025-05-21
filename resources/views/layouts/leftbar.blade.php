@@ -70,11 +70,11 @@
                 <li class="sidebar-item">
                     <a class="sidebar-link waves-effect waves-dark has-arrow" href="#" aria-expanded="false" data-bs-toggle="collapse" data-bs-target="#sensorSummaryMenu">
                         <i class="ri-folder-shared-line"></i>
-                        <span class="hide-menu">Sensor Summary </span>
+                        <span class="hide-menu">Sensor</span>
                     </a>
                     <ul aria-expanded="false" class="collapse first-level" id="sensorSummaryMenu">
                         <li class="sidebar-item">
-                            <a href="#" class="sidebar-link">
+                            <a href="{{ route('sensors.create') }}" class="sidebar-link">
                                 <i class="ri-eye-line"></i>
                                 <span class="hide-menu">Register New Sensor</span>
                             </a>
@@ -82,7 +82,7 @@
                         <li class="sidebar-item">
                             <a href="{{ route('sensors.index') }}" class="sidebar-link">
                                 <i class="ri-file-upload-line"></i>
-                                <span class="hide-menu">Sensors Status</span>
+                                <span class="hide-menu">Sensors Status Summary</span>
                             </a>
                         </li>
                     </ul>

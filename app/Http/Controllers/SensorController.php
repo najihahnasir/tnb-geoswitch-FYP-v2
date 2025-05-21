@@ -102,7 +102,8 @@ class SensorController extends Controller
      */
     public function create()
     {
-        //
+        $substations = \App\Models\Substation::all();
+        return view('sensors.create', compact('substations'));
     }
 
     /**
