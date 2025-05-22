@@ -74,15 +74,15 @@
                     </a>
                     <ul aria-expanded="false" class="collapse first-level" id="sensorSummaryMenu">
                         <li class="sidebar-item">
-                            <a href="{{ route('sensors.create') }}" class="sidebar-link">
-                                <i class="ri-eye-line"></i>
-                                <span class="hide-menu">Register New Sensor</span>
-                            </a>
-                        </li>
-                        <li class="sidebar-item">
                             <a href="{{ route('sensors.index') }}" class="sidebar-link">
                                 <i class="ri-file-upload-line"></i>
                                 <span class="hide-menu">Sensors Status Summary</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="{{ route('sensors.create') }}" class="sidebar-link">
+                                <i class="ri-eye-line"></i>
+                                <span class="hide-menu">Register New Sensor</span>
                             </a>
                         </li>
                     </ul>
@@ -124,7 +124,7 @@
                         <i class="ri-settings-2-line"></i>
                         <span class="hide-menu"> Setting </span>
                     </a>
-                    <ul aria-expanded="false" class="collapse first-level">
+                    {{-- <ul aria-expanded="false" class="collapse first-level">
                         <li class="sidebar-item">
                             <a href="#" class="sidebar-link">
                                 <i class="mdi mdi-adjust"></i>
@@ -161,7 +161,7 @@
                                 <span class="hide-menu-2">#</span>
                             </a>
                         </li>
-                    </ul>
+                    </ul> --}}
                 </li>
 
                 <!-- Example of a single menu item -->
