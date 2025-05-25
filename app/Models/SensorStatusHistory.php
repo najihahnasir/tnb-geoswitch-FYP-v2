@@ -18,6 +18,18 @@ class SensorStatusHistory extends Model
         return $this->belongsTo(Sensor::class);
     }
 
+    public function switchgear() 
+    {
+        return $this->belongsTo(Switchgear::class);
+    }
+
+    public function substation() 
+    {
+        return $this->belongsTo(Substation::class);
+    }
+
+
+
     public function user()
     {
         return $this->belongsTo(User::class);

@@ -80,6 +80,11 @@
     }
     
     .sensor-marker {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background-color: #2ecc71;
+        border: 2px solid white;
         transition: all 0.3s ease;
     }
     .sensor-marker:hover {
@@ -89,7 +94,7 @@
     }
     
     /* Pulse animation for alarm sensors */
-    .sensor-alarm {
+    /* .sensor-alarm {
         animation: pulse 1.5s infinite;
     }
     
@@ -97,8 +102,35 @@
         0% { transform: scale(1); opacity: 1; }
         50% { transform: scale(1.2); opacity: 0.8; }
         100% { transform: scale(1); opacity: 1; }
+    } */
+     /* Pulse animation for alarm sensors */
+    /* .sensor-alarm {
+        position: relative;
+        z-index: 1000;
+    } */
+
+    /* Blinking circular border */
+    .sensor-alarm {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background-color: #e74c3c;
+        position: relative;
+        animation: blink-marker 1s infinite ease-in-out;
+        border: 2px solid white;
+        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
     }
-    #sensor-summary-panel {
+
+    @keyframes blink-marker {
+        0%, 100% {
+            box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+        }
+        50% {
+            box-shadow: 0 0 0 10px rgba(231, 76, 60, 0);
+        }
+    }
+
+    /* #sensor-summary-panel {
         position: fixed;
         right: -320px;
         top: 100px;
@@ -131,7 +163,61 @@
     #sensor-summary-panel .row span {
         font-size: 14px;
         color: #333;
+    } */
+
+     #sensor-summary-panel {
+        position: fixed;
+        right: -320px;
+        top: 100px;
+        width: 300px;
+        background: #fff;
+        border-left: 1px solid #ddd;
+        box-shadow: -2px 0 8px rgba(0,0,0,0.1);
+        padding: 20px 25px;
+        z-index: 2000;
+        height: auto;
+        transition: right 0.3s ease;
+        border-radius: 8px 0 0 8px;
+        font-family: 'Segoe UI', sans-serif;
     }
+
+    #sensor-summary-panel.active {
+        right: 20px;
+    }
+
+    .summary-row {
+        margin-bottom: 15px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .summary-row label {
+        font-weight: 600;
+        font-size: 14px;
+        color: #555;
+        margin-bottom: 4px;
+    }
+
+    .summary-row span {
+        font-size: 14px;
+        color: #222;
+    }
+
+    /* Optional colored badge styling for sensor status */
+    .badge-status {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 500;
+        background: #eee;
+        color: #444;
+    }
+
+    .badge-status.online { background: #d4f4dd; color: #2ecc71; }
+    .badge-status.repairing { background: #fff4d6; color: #f39c12; }
+    .badge-status.offline { background: #fbe2e2; color: #e74c3c; }
+
 </style>
 @endpush
 <div>
@@ -216,8 +302,7 @@
     <div id="map"></div> --}}
     </div>
     
-    <div id="sensor-summary-panel">
-        {{-- <button class="close-btn" onclick="closeSensorSummaryPanel()">✖</button> --}}
+    {{-- <div id="sensor-summary-panel">
         <button class="close-btn" id="summary-close-btn">✖</button>
         <h5>Sensor Summary</h5>
 
@@ -226,245 +311,37 @@
         <div class="row"><label>Status:</label><span id="summary-status">-</span></div>
         <div class="row"><label>Panel:</label><span id="summary-panel">-</span></div>
         <div class="row"><label>Substation:</label><span id="summary-substation">-</span></div>
+    </div> --}}
+    <div id="sensor-summary-panel">
+    <button class="close-btn" id="summary-close-btn" style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; font-size: 18px; cursor: pointer;">✖</button>
+    
+    <h4 style="margin-bottom: 20px; font-size: 16px; font-weight: 600; color: #333;">Sensor Summary</h4>
+
+    <div class="summary-row">
+        <label>Tag:</label>
+        <span id="summary-tag">-</span>
+    </div>
+    <div class="summary-row">
+        <label>Type:</label>
+        <span id="summary-type">-</span>
+    </div>
+    <div class="summary-row">
+        <label>Status:</label>
+        <span id="summary-status" class="badge-status">-</span>
+    </div>
+    <div class="summary-row">
+        <label>Panel:</label>
+        <span id="summary-panel">-</span>
+    </div>
+    <div class="summary-row">
+        <label>Substation:</label>
+        <span id="summary-substation">-</span>
     </div>
 </div>
 
-{{-- @push('after-scripts')
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script> --}}
-{{-- latest script map --}}
-{{-- <script>
-    var map = L.map('map').setView([3.1390, 101.6869], 11);
+</div>
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 18,
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
-    
-    //substations passed array from controller
-    // var substations = @json($substations ?? []);
-    // var markers = [];
-    // const sensors = @json($sensors ?? []);
-    // let sensorMarkers = [];
-    // let selectedTypes = []; 
-    // let statusCounts = { online: 0, repairing: 0, offline: 0, unknown: 0 };
-    // let selectedStatus = 'ALL';
-    var substations = @json($substations ?? []);
-    const sensors = @json($sensors ?? []);
-    var markers = [];
-    var sensorMarkers = [];
-    var statusCounts = { online: 0, repairing: 0, offline: 0, unknown: 0 };
-    var selectedStatus = 'ALL';
-    var selectedTypes = [];
 
-    // Get color based on status
-    function getStatusColor(status) {
-        switch ((status || '').toLowerCase()) {
-            case 'online': return '#2ecc71';    
-            case 'repairing': return '#f39c12'; 
-            case 'offline': return '#e74c3c';   
-            default: return '#3498db';
-        }
-    }
-
-    // Update status cards
-    function updateStatusCards() {
-        document.getElementById('normal-count').textContent = statusCounts.online || 0;
-        document.getElementById('await-count').textContent = statusCounts.repairing || 0;
-        document.getElementById('alarm-count').textContent = statusCounts.offline || 0;
-    }
-
-    function updateLegend() {
-        const legend = document.getElementById('legend-items');
-        legend.innerHTML = '';
-
-        const statuses = {
-        'online':   { color: '#2ecc71', label: 'Online' },
-        'repairing':{ color: '#f39c12', label: 'Repairing' },
-        'offline':  { color: '#e74c3c', label: 'Offline' },
-        'unknown':  { color: '#3498db', label: 'Unknown' }
-    };
-
-        Object.entries(statuses).forEach(([status, { color, label }]) => {
-            const count = statusCounts[status] || 0;
-            if (count > 0) {
-                const item = document.createElement('div');
-                item.className = 'legend-item';
-                item.innerHTML = `
-                    <span class="legend-color" style="background: ${color}"></span>
-                    <span>${label} (${count})</span>
-                `;
-                legend.appendChild(item);
-            }
-        });
-    }
-
-    function updateSensorSummaryPanel(sensor) {
-        document.getElementById('summary-tag').textContent = sensor.tag || '-';
-        document.getElementById('summary-type').textContent = sensor.type || '-';
-        document.getElementById('summary-status').textContent = sensor.latest_measurement?.status || '-';
-        document.getElementById('summary-panel').textContent = sensor.switchgear?.panel || '-';
-        document.getElementById('summary-substation').textContent = sensor.switchgear?.substation?.substation_name || '-';
-        document.getElementById('sensor-summary-panel').classList.add('active');
-    }
-
-    function renderSensorMarkers(substationName, selectedTypes) {
-        sensorMarkers.forEach(marker => map.removeLayer(marker));
-        sensorMarkers = [];
-        statusCounts = { ALARM: 0, AWAIT: 0, NORMAL: 0, UNKNOWN: 0 };
-
-        console.log("🧭 Selected Substation:", substationName);
-        console.log("📦 Selected Sensor Types:", selectedTypes);
-
-        sensors.forEach(sensor => {
-            const switchgear = sensor.switchgear;
-            const sub = switchgear?.substation;
-
-            if (!sub || !switchgear) {
-                console.warn("⚠️ Missing switchgear or substation:", sensor);
-                return;
-            }
-
-            const type = sensor.type;
-            // const status = sensor.latest_measurement?.status || 'UNKNOWN'.toUpperCase();
-            const status = (sensor.status || 'unknown').toLowerCase();
-            // Count status regardless of filters
-            statusCounts[status] = (statusCounts[status] || 0) + 1;
-
-            const matchSubstation = substationName === 'all' ||
-                sub.substation_name.trim().toLowerCase() === substationName.trim().toLowerCase();
-            
-            const matchType = selectedTypes.includes('ALL') ||
-                selectedTypes.includes(type);
-
-            console.log(` Sensor [${sensor.tag}] — Type: ${type}, Status: ${status}`);
-            console.log(` Substation: ${sub.substation_name}`);
-            console.log(` Match Substation: ${matchSubstation}, Match Type: ${matchType}`);
-
-            const matchStatus = selectedStatus === 'ALL' || status === selectedStatus;
-
-            if (matchSubstation && matchType && matchStatus) {
-                const latNum = parseFloat(sub.latitude);
-                const lngNum = parseFloat(sub.longitude);
-
-                if (isNaN(latNum) || isNaN(lngNum)) {
-                    console.warn(`Invalid lat/lng for substation: ${sub.substation_name}`, sub.latitude, sub.longitude);
-                    return;
-                }
-
-                const offsetLat = +(latNum + (Math.random() - 0.5) * 0.0003).toFixed(6);
-                const offsetLng = +(lngNum + (Math.random() - 0.5) * 0.0003).toFixed(6);
-
-                const marker = L.circleMarker([offsetLat, offsetLng], {
-                    radius: 10,
-                    color: getStatusColor(status),
-                    fillColor: getStatusColor(status),
-                    fillOpacity: 0.8,
-                    weight: 2,
-                    className: `sensor-marker ${status === 'ALARM' ? 'sensor-alarm' : ''}`
-                }).on('click', () => {
-                    updateSensorSummaryPanel(sensor);
-                }).bindPopup(`
-                    <b>${sensor.tag || 'Sensor'}</b><br>
-                    Type: ${type || 'N/A'}<br>
-                    Status: ${status}<br>
-                    Panel: ${switchgear.panel || 'N/A'}<br>
-                    Substation: ${sub.substation_name}
-                `);
-
-                marker.addTo(map);
-                sensorMarkers.push(marker);
-            } else {
-                console.log(` Skipped - does not match filters.`);
-            }
-        });
-
-        updateStatusCards();
-        updateLegend();
-
-        if (sensorMarkers.length > 0) {
-            map.fitBounds(L.featureGroup(sensorMarkers).getBounds(), { padding: [40, 40] });
-        } else {
-            console.warn("📭 No matching sensors to display.");
-        }
-        // Initialize on DOM load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Count all sensors initially
-            sensors.forEach(sensor => {
-                const status = (sensor.latest_measurement?.status || 'UNKNOWN').toUpperCase();
-                statusCounts[status] = (statusCounts[status] || 0);
-            });
-            updateStatusCards();
-            console.table(statusCounts); // for visual table in console
-
-            updateLegend();
-        });
-    }
-
-    // Sensor type checkbox filters
-    document.querySelectorAll('.sensor-filter').forEach(cb => {
-        cb.addEventListener('change', function () {
-            selectedTypes = Array.from(document.querySelectorAll('.sensor-filter:checked')).map(cb => cb.value);
-            const selectedSubstation = document.getElementById('substationFilter').value;
-            renderSensorMarkers(selectedSubstation, selectedTypes);
-        });
-    });
-
-    //to render markers on map
-    function renderMarkers(data) {
-        markers.forEach(marker => map.removeLayer(marker));
-        markers = [];
-
-        data.forEach(sub => {
-            const sensorCount = sensors.filter(s => s.switchgear?.substation?.substation_name === sub.substation_name).length;
-            const marker = createSubstationMarker(
-                parseFloat(sub.latitude),
-                parseFloat(sub.longitude),
-                sub.substation_name,
-                sub.substation_location,
-                sensorCount
-            ).addTo(map);
-
-            markers.push(marker);
-        });
-    }
-
-    function createSubstationMarker(lat, lng, name, location, sensorCount) {
-        return L.marker([lat, lng], {
-            icon: new L.Icon.Default()
-        }).bindPopup(`<b>${name}</b><br>${location}<br><small>Sensors: ${sensorCount}</small>`);
-    }
-
-    renderMarkers(substations);
-    renderSensorMarkers('all', selectedTypes);
-
-    // filter logic
-    document.getElementById('substationFilter').addEventListener('change', function () {
-        var selected = this.value;
-        if (selected === 'all') {
-            renderMarkers(substations);
-            map.setView([3.1390, 101.6869], 11); // reset to default
-        } else {
-            var filtered = substations.filter(substation => substation.substation_name === selected);
-            renderMarkers(filtered);
-            if (filtered.length > 0) {
-                map.setView([filtered[0].latitude, filtered[0].longitude], 14);
-            }
-        }
-    });
-
-    // Status filter dropdown
-    document.getElementById('statusFilter').addEventListener('change', function () {
-        selectedStatus = this.value;
-        const selectedSubstation = document.getElementById('substationFilter').value;
-        renderSensorMarkers(selectedSubstation, selectedTypes);
-    });
-
-    // renderSubstations(substations);
-    setTimeout(() => {
-        map.invalidateSize();
-    }, 500);
-
-</script> --}}
 @push('after-scripts')
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
@@ -544,11 +421,18 @@
 
         // Update sensor summary panel
         function updateSensorSummaryPanel(sensor) {
+            const status = sensor.status?.toLowerCase() || '-';
+            const statusSpan = document.getElementById('summary-status');
+            statusSpan.textContent = status;
+            statusSpan.className = 'badge-status ' + status;
+
             document.getElementById('summary-tag').textContent = sensor.tag || '-';
             document.getElementById('summary-type').textContent = sensor.type || '-';
             document.getElementById('summary-status').textContent = sensor.status || '-';
             document.getElementById('summary-panel').textContent = sensor.switchgear?.panel || '-';
             document.getElementById('summary-substation').textContent = sensor.switchgear?.substation?.substation_name || '-';
+
+            document.getElementById('sensor-summary-panel').classList.add('active');
 
             function closeSensorSummaryPanel() {
                 document.getElementById('sensor-summary-panel').classList.remove('active');
@@ -600,13 +484,32 @@
                     const offsetLat = +(latNum + (Math.random() - 0.5) * 0.0003).toFixed(6);
                     const offsetLng = +(lngNum + (Math.random() - 0.5) * 0.0003).toFixed(6);
 
-                    const marker = L.circleMarker([offsetLat, offsetLng], {
-                        radius: 10,
-                        color: getStatusColor(status),
-                        fillColor: getStatusColor(status),
-                        fillOpacity: 0.8,
-                        weight: 2,
-                        className: `sensor-marker ${status === 'offline' ? 'sensor-alarm' : ''}`
+                    // const marker = L.circleMarker([offsetLat, offsetLng], {
+                    //     radius: 10,
+                    //     color: getStatusColor(status),
+                    //     fillColor: getStatusColor(status),
+                    //     fillOpacity: 0.8,
+                    //     weight: 2,
+                    //     className: `sensor-marker ${status.toLowerCase() === 'offline' ? 'sensor-alarm' : ''}`
+                    // }).on('click', () => {
+                    //     updateSensorSummaryPanel(sensor);
+                    // }).bindPopup(`
+                    //     <b>${sensor.tag || 'Sensor'}</b><br>
+                    //     Type: ${type || 'N/A'}<br>
+                    //     Status: ${status}<br>
+                    //     Panel: ${switchgear?.panel || 'N/A'}<br>
+                    //     Substation: ${sub?.substation_name || 'N/A'}
+                    // `);
+
+                    const icon = L.divIcon({
+                        className: '',
+                        html: `<div class="sensor-marker ${status === 'offline' ? 'sensor-alarm' : ''}" style="background-color: ${getStatusColor(status)};"></div>`,                        
+                        iconSize: [18, 18],
+                        iconAnchor: [9, 9]
+                    });
+
+                    const marker = L.marker([offsetLat, offsetLng], {
+                        icon: icon
                     }).on('click', () => {
                         updateSensorSummaryPanel(sensor);
                     }).bindPopup(`
@@ -616,7 +519,6 @@
                         Panel: ${switchgear?.panel || 'N/A'}<br>
                         Substation: ${sub?.substation_name || 'N/A'}
                     `);
-
                     marker.addTo(map);
                     sensorMarkers.push(marker);
                 }
@@ -733,6 +635,12 @@
                 }
                 
                 renderSensorMarkers(selected, selectedTypes);
+                // ✅ Wait a bit and then zoom to visible sensors
+                setTimeout(() => {
+                    if (sensorMarkers.length > 0) {
+                        map.fitBounds(L.featureGroup(sensorMarkers).getBounds(), { padding: [40, 40] });
+                    }
+                }, 100); // Delay just enough to let markers render
             });
 
             // Status dropdown filter
@@ -745,6 +653,18 @@
 
         renderMarkers(substations); // Only show substations on load
         initializeFilters(); // Wait for user interaction to load sensors
+
+        // ✅ Avoid rendering sensors when 'All Substations' selected
+        // Just prepare the legend based on sensor counts
+        sensors.forEach(sensor => {
+            const status = (sensor.status || 'unknown').toLowerCase();
+            statusCounts[status] = (statusCounts[status] || 0) + 1;
+        });
+
+
+        // ✅ Force legend to show on initial load
+        updateLegend();
+
 
         document.getElementById('resetFiltersBtn').addEventListener('click', function () {
         // Reset dropdowns

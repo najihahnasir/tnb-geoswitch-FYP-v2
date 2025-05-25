@@ -3,7 +3,6 @@
 @section('title', 'Sensor Analytics')
 @section('page-title', 'Sensor Analytics')
 
-
 @section('content')
 <style>
     .chart-container {
@@ -18,19 +17,18 @@
 </style>
 
 <div class="container my-2">
-    {{-- <h5 class="mb-4 mt-2">📊 Sensor Analytics Dashboard</h5> --}}
-    <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+    <div class="d-flex justify-content-between align-items-center mb-4">
         <h5 class="mb-0">📊 Sensor Analytics Dashboard</h5>
-        <div class="d-flex gap-2">
+        <div class="d-flex flex-wrap gap-2">
             <a href="{{ route('analytics.export', ['export' => 'pdf']) }}" class="btn btn-danger btn-sm">📄 Export PDF</a>
             <a href="{{ route('analytics.export', ['export' => 'excel']) }}" class="btn btn-success btn-sm">📊 Export Excel</a>
             <a href="{{ route('analytics.export', ['export' => 'csv']) }}" class="btn btn-secondary btn-sm">📑 Export CSV</a>
-            <button onclick="downloadChartAsPDF('totalSensorsChart')" class="btn btn-outline-primary btn-sm">🖼️ Chart PDF</button>
-            <button onclick="viewChartAsPDF('totalSensorsChart')" class="btn btn-outline-secondary btn-sm">👁️ View Chart PDF</button>
+            {{-- <button onclick="downloadChartAsPDF('totalSensorsChart')" class="btn btn-outline-primary btn-sm">🖼️ Download Chart</button>
+            <button onclick="viewChartAsPDF('totalSensorsChart')" class="btn btn-outline-secondary btn-sm">👁️ Preview Chart</button> --}}
         </div>
     </div>
 
-    <!-- 🔹 Summary Cards -->
+    <!-- Summary Cards -->
     <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
         <div class="col">
             <div class="card text-center shadow-sm p-3">
@@ -52,36 +50,7 @@
         </div>
     </div>
 
-    <!-- 🔹 Filter Form -->
-    {{-- <form method="GET" class="row g-3 mb-4">
-        <div class="col-md-3">
-            <select name="sensor_type" class="form-select">
-                <option value="">-- Select Sensor Type --</option>
-                @foreach ($sensorTypes as $type)
-                    <option value="{{ $type }}" {{ request('sensor_type') == $type ? 'selected' : '' }}>{{ $type }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="col-md-3">
-            <select name="substation_id" class="form-select">
-                <option value="">-- Select Substation --</option>
-                @foreach ($substations as $s)
-                    <option value="{{ $s->id }}" {{ request('substation_id') == $s->id ? 'selected' : '' }}>{{ $s->substation_name }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="col-md-2">
-            <input type="number" name="year" class="form-control" placeholder="Year" value="{{ request('year') }}">
-        </div>
-        <div class="col-md-2">
-            <input type="number" name="month" class="form-control" placeholder="Month" value="{{ request('month') }}">
-        </div>
-        <div class="col-md-2">
-            <button class="btn btn-primary w-100">Filter</button>
-        </div>
-    </form> --}}
-
-    <!-- 🔹 Filter Form (Dynamic) -->
+    <!-- Filter Form -->
     <form id="filterForm" method="GET" class="row g-3 mb-4 align-items-end">
         <div class="col-md-3">
             <label for="sensorTypeFilter" class="form-label">Sensor Type</label>
@@ -106,7 +75,7 @@
         <div class="col-md-2">
             <label for="yearFilter" class="form-label">Year</label>
             <select name="year" id="yearFilter" class="form-select">
-                <option value="">Select Year </option>
+                <option value="">Select Year</option>
                 @for ($y = now()->year; $y >= 2020; $y--)
                     <option value="{{ $y }}" {{ request('year') == $y ? 'selected' : '' }}>{{ $y }}</option>
                 @endfor
@@ -118,69 +87,104 @@
             <input type="number" name="month" id="monthFilter" class="form-control" placeholder="Month" min="1" max="12" value="{{ request('month') }}">
         </div>
 
-        <div class="col-md-2 d-flex gap-2">
-            <a href="{{ route(\Illuminate\Support\Facades\Route::currentRouteName()) }}" class="btn btn-outline-secondary w-100">🔄 Reset</a>
+        <div class="col-md-2 d-grid">
+            <a href="{{ route(\Illuminate\Support\Facades\Route::currentRouteName()) }}" class="btn btn-outline-secondary">🔄 Reset</a>
         </div>
     </form>
 
-    <!-- 🔹 Chart Grid -->
-    <div class="row g-2 align-items-start mb-2">
+    <!-- Charts Row -->
+    <div class="row g-3">
         <div class="col-md-6">
-            <div class="card p-3 shadow-sm">
-                <h6 class="card-title mb-2">📅 Yearly Trend</h6>
-                <div class="chart-container"><canvas id="trendChart"></canvas></div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card p-3 shadow-sm">
-                <h6 class="card-title mb-2">📊 Total Sensors by Type</h6>
-                <div class="chart-container"><canvas id="totalSensorsChart"></canvas></div>
-            </div>
-        </div>
-        {{-- <div class="col-md-6">
-            <div class="card p-3 shadow-sm">
-                <h6 class="card-title mb-2">⚠️ Failure Frequency</h6>
-                <div class="chart-container"><canvas id="failureChart"></canvas></div>
-            </div>
-        </div> --}}
-        <div class="row g-4">
-            <!-- Failure Frequency: wider space -->
-            <div class="col-md-8">
-                <div class="card p-3 shadow-sm">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="card-title mb-0">⚠️ Failure Frequency</h6>
-                        <select id="failureFilter" class="form-select form-select-sm w-auto">
-                            <option value="all">All Substations</option>
-                            <option value="top5">Top 5 Most Offline</option>
-                            <option value="withOffline">Only with Offline</option>
-                        </select>
-                    </div>
-                    <div class="chart-container" id="failureChartContainer">
-                        <canvas id="failureChart"></canvas>
-                    </div>
+            <div class="card shadow-sm p-3">
+                <h6 class="card-title">📅 Yearly Trend</h6>
+                <div class="chart-container">
+                    <canvas id="trendChart"></canvas>
                 </div>
             </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm p-3">
+                <h6 class="card-title">📊 Total Sensors by Type</h6>
+                <div class="chart-container">
+                    <canvas id="totalSensorsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            <!-- Status Pie Chart: smaller column -->
-            <div class="col-md-4">
-                <div class="card p-3 shadow-sm">
-                    <h6 class="card-title mb-2">📶 Status Distribution</h6>
-                    <div class="chart-container" style="height: 300px;">
-                        <canvas id="statusChart"></canvas>
-                    </div>
+    <div class="row g-3 mt-1">
+        <div class="col-md-8">
+            <div class="card shadow-sm p-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="card-title mb-0">⚠️ Failure Frequency</h6>
+                    <select id="failureFilter" class="form-select form-select-sm w-auto">
+                        <option value="all">All Substations</option>
+                        <option value="top5">Top 5 Most Offline</option>
+                        <option value="withOffline">Only with Offline</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="failureChart"></canvas>
                 </div>
             </div>
         </div>
 
-        
+        <div class="col-md-4">
+            <div class="card shadow-sm p-3">
+                <h6 class="card-title">📶 Status Distribution</h6>
+                <div class="chart-container" style="height: 325px">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mt-3">
+            <div class="col-12">
+                <div class="card shadow-sm p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="card-title mb-0">📅 Sensor Status Timeline</h6>
+                        <!--  Status Filter Dropdown -->
+                        <form method="GET" class="d-flex align-items-center gap-2">
+                            <label class="form-label mb-0 me-2 small">Status:</label>
+                            <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                                <option value="">All</option>
+                                <option value="online" {{ request('status') == 'online' ? 'selected' : '' }}>Online</option>
+                                <option value="repairing" {{ request('status') == 'repairing' ? 'selected' : '' }}>Repairing</option>
+                                <option value="offline" {{ request('status') == 'offline' ? 'selected' : '' }}>Offline</option>
+                            </select>
+                        </form>
+                    </div>
+
+                    <div class="chart-container" style="height: 500px;">
+                        @if($statusTimelineData->isNotEmpty())
+                            <canvas id="statusTimelineChart"></canvas>
+                        @else
+                            <p class="text-muted">No timeline data available for this filter.</p>
+                        @endif
+                    </div>
+
+                    <!-- Custom Color Legend -->
+                    <div class="mt-3 small text-muted d-flex gap-4 align-items-center">
+                        <span><i style="background:#198754;width:12px;height:12px;display:inline-block;border-radius:2px;"></i> Online</span>
+                        <span><i style="background:#ffc107;width:12px;height:12px;display:inline-block;border-radius:2px;"></i> Repairing</span>
+                        <span><i style="background:#dc3545;width:12px;height:12px;display:inline-block;border-radius:2px;"></i> Offline</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
+
 <!-- Chart.js -->
+{{-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script> --}}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-doughnutlabel@1.0.3/dist/chartjs-plugin-doughnutlabel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
+
 <script>
     async function downloadChartAsPDF(canvasId) {
         const { jsPDF } = window.jspdf;
@@ -223,6 +227,9 @@
 </script>
 
 <script>
+    const statusData = @json($statusData);
+    const totalSensors = @json($totalSensors);
+
     const histories = @json($sensorHistories);
     const allSubstations = @json($substationNames);
     const normalize = val => val.trim();
@@ -264,16 +271,16 @@
         data: allSubstations.map(sub => failureCounts[sub] || 0)
     };
 
-    const statusCounts = {};
-    histories.forEach(h => {
-        const key = h.status;
-        statusCounts[key] = (statusCounts[key] || 0) + h.failures;
-    });
+    // const statusCounts = {};
+    // histories.forEach(h => {
+    //     const key = h.status;
+    //     statusCounts[key] = (statusCounts[key] || 0) + h.failures;
+    // });
 
-    const statusData = Object.entries(statusCounts).map(([status, count]) => ({
-        status,
-        count
-    }));
+    // const statusData = Object.entries(statusCounts).map(([status, count]) => ({
+    //     status,
+    //     count
+    // }));
 
     const trendLabels = [...new Set(histories.map(h => `${h.month}/${h.year}`))].sort();
     const trendData = sensorTypes.map(type => {
@@ -334,33 +341,6 @@
     });
 
     // Failure Frequency (Horizontal Bar)
-    // new Chart(document.getElementById('failureChart'), {
-    //     type: 'bar',
-    //     data: {
-    //         labels: failureData.labels,
-    //         datasets: [{
-    //             label: 'Offline Failures',
-    //             backgroundColor: '#dc3545',
-    //             data: failureData.data
-    //         }]
-    //     },
-    //     options: {
-    //         indexAxis: 'y',
-    //         responsive: true,
-    //         plugins: {
-    //             title: { display: true, text: 'Failure Frequency per Substation' }
-    //         },
-    //         scales: {
-    //             x: {
-    //                 beginAtZero: true,
-    //                 title: { display: true, text: 'Failure Count' }
-    //             },
-    //             y: {
-    //                 title: { display: true, text: 'Substation' }
-    //             }
-    //         }
-    //     }
-    // });
     const failureRawData = failureData.labels.map((label, idx) => ({
         label,
         value: failureData.data[idx]
@@ -410,21 +390,52 @@
     });
 
     // Status Distribution (Pie)
-    new Chart(document.getElementById('statusChart'), {
+    const centerTextPlugin = {
+        id: 'centerTextPlugin',
+        afterDraw(chart) {
+            const { ctx, chartArea: { left, right, top, bottom } } = chart;
+            const centerX = (left + right) / 2;
+            const centerY = (top + bottom) / 2;
+
+            ctx.save();
+            ctx.font = 'bold 20px sans-serif';
+            ctx.fillStyle = '#333';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(totalSensors.toString(), centerX, centerY - 10);
+
+            ctx.font = '12px sans-serif';
+            ctx.fillStyle = '#888';
+            ctx.fillText('Total Sensors', centerX, centerY + 10);
+            ctx.restore();
+        }
+    };
+
+    // Setup the chart
+    const ctx = document.getElementById('statusChart').getContext('2d');
+
+    new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: statusData.map(s => s.status),
             datasets: [{
-                label: 'Status Distribution',
-                backgroundColor: ['#198754', '#ffc107', '#dc3545'],
+                backgroundColor: ['#198754', '#ffc107','#dc3545'],
                 data: statusData.map(s => s.count)
             }]
         },
         options: {
+            responsive: true,
             plugins: {
-                title: { display: true, text: 'Sensor Status Distribution' }
+                title: {
+                    display: true,
+                    text: 'Sensor Status Distribution'
+                },
+                legend: {
+                    position: 'bottom'
+                }
             }
-        }
+        },
+        plugins: [centerTextPlugin]
     });
 
     // Yearly Trend (Line)
@@ -450,6 +461,320 @@
             }
         }
     });
+
+    // const timelineDataRaw = @json($statusTimelineData);
+
+    // const barData = {
+    //     labels: timelineDataRaw.map(d => d.tag + ' (' + d.substation_name + ')'),
+    //     datasets: [{
+    //         label: 'Status Timeline',
+    //         data: timelineDataRaw.map(d => ({
+    //             x: [new Date(d.created_at), new Date(d.resolved_at)],
+    //             y: d.tag + ' (' + d.substation_name + ')',
+    //             status: d.new_status
+    //         })),
+    //         backgroundColor: timelineDataRaw.map(d =>
+    //             d.new_status === 'offline' ? '#dc3545' :
+    //             d.new_status === 'repairing' ? '#ffc107' :
+    //             '#198754'
+    //         ),
+    //         borderWidth: 1,
+    //         borderColor: '#fff'
+    //     }]
+    // };
+
+    // new Chart(document.getElementById('statusTimelineChart'), {
+    //     type: 'bar',
+    //     data: barData,
+    //     options: {
+    //         indexAxis: 'y',
+    //         responsive: true,
+    //         plugins: {
+    //             tooltip: {
+    //                 callbacks: {
+    //                     label: ctx => {
+    //                         const val = ctx.raw;
+    //                         return `From ${new Date(val.x[0]).toLocaleString()} to ${new Date(val.x[1]).toLocaleString()}`;
+    //                     }
+    //                 }
+    //             },
+    //             legend: { display: false },
+    //             title: { display: false }
+    //         },
+    //         scales: {
+    //             x: {
+    //                 type: 'time',
+    //                 time: {
+    //                     unit: 'day',
+    //                     tooltipFormat: 'dd MMM yyyy HH:mm'
+    //                 },
+    //                 title: { display: true, text: 'Time Range' }
+    //             },
+    //             y: { title: { display: true, text: 'Sensor (Substation)' } }
+    //         }
+    //     }
+    // });
+
+    const timelineDataRaw = @json($statusTimelineData);
+    console.log(timelineDataRaw);
+
+    // Convert date range to duration (in ms) and midpoint
+    // const dataset = timelineDataRaw.map((d, idx) => {
+    //     const start = new Date(d.created_at);
+    //     const end = new Date(d.resolved_at);
+    //     const mid = new Date((start.getTime() + end.getTime()) / 2);
+    //     const duration = (end.getTime() - start.getTime()) / (1000 * 60 * 60); // hours
+
+    //     return {
+    //         x: mid,
+    //         y: d.tag + ' (' + d.substation_name + ')',
+    //         duration,
+    //         status: d.new_status
+    //     };
+    // });
+
+    //new 
+
+    // const dataset = timelineDataRaw.map(d => {
+    //     const start = new Date(d.created_at).getTime();
+    //     const end = new Date(d.resolved_at || Date.now()).getTime(); // handle ongoing
+    //     const duration = (end - start) / (1000 * 60 * 60); // hours
+
+    //     return {
+    //         x: [start, end], // ⬅️ use range
+    //         y: d.tag + ' (' + d.substation_name + ')',
+    //         status: d.new_status,
+    //         duration,
+    //         start,
+    //         end
+    //     };
+    // });
+
+    // new Chart(document.getElementById('statusTimelineChart'), {
+    //     type: 'bar',
+    //     data: {
+    //         labels: [...new Set(dataset.map(d => d.y))],
+    //         datasets: [{
+    //             label: 'Status Duration',
+    //             data: dataset,
+    //             backgroundColor: dataset.map(d =>
+    //                 d.status === 'offline' ? '#dc3545' :
+    //                 d.status === 'repairing' ? '#ffc107' :
+    //                 '#198754'
+    //             ),
+    //             parsing: {
+    //                 xAxisKey: 'x',
+    //                 yAxisKey: 'y'
+    //             },
+    //             barThickness: 12
+    //         }]
+    //     },
+    //     options: {
+    //         indexAxis: 'y',
+    //         responsive: true,
+    //         plugins: {
+    //             tooltip: {
+    //                 callbacks: {
+    //                     label: ctx => {
+    //                         const data = ctx.raw;
+    //                         return `Status: ${data.status}\nFrom: ${new Date(data.x.getTime() - data.duration * 60 * 60 * 1000).toLocaleString()}\nTo: ${new Date(data.x).toLocaleString()}`;
+    //                     }
+    //                 }
+    //             },
+    //             legend: { display: false },
+    //             title: { display: true, text: 'Sensor Status Timeline' }
+    //         },
+    //         scales: {
+    //             x: {
+    //                 type: 'time',
+    //                 time: {
+    //                     unit: 'day',
+    //                     tooltipFormat: 'dd MMM yyyy HH:mm'
+    //                 },
+    //                 title: { display: true, text: 'Date Range' }
+    //             },
+    //             y: {
+    //                 title: { display: true, text: 'Sensor (Substation)' },
+    //                 ticks: { autoSkip: false }
+    //             }
+    //         }
+    //     }
+    // });
+
+    //new
+    // new Chart(document.getElementById('statusTimelineChart'), {
+    //     type: 'bar',
+    //     data: {
+    //         labels: [...new Set(dataset.map(d => d.y))],
+    //         datasets: [{
+    //             label: 'Status Period',
+    //             data: dataset,
+    //             backgroundColor: dataset.map(d =>
+    //                 d.status === 'offline' ? '#dc3545' :
+    //                 d.status === 'repairing' ? '#ffc107' :
+    //                 '#198754'
+    //             ),
+    //             parsing: {
+    //                 xAxisKey: 'x',
+    //                 yAxisKey: 'y'
+    //             },
+    //             barPercentage: 1,
+    //             categoryPercentage: 1
+    //         }]
+    //     },
+    //     options: {
+    //         indexAxis: 'y',
+    //         responsive: true,
+    //         plugins: {
+    //             tooltip: {
+    //                 callbacks: {
+    //                     label: ctx => {
+    //                         const d = ctx.raw;
+    //                         const from = new Date(d.start).toLocaleString();
+    //                         const to = new Date(d.end).toLocaleString();
+    //                         return `Status: ${d.status}\nFrom: ${from}\nTo: ${to}\nDuration: ${d.duration.toFixed(1)} hrs`;
+    //                     }
+    //                 }
+    //             },
+    //             legend: { display: false },
+    //             title: { display: true, text: 'Sensor Status Timeline' }
+    //         },
+    //         scales: {
+    //             x: {
+    //                 type: 'linear',
+    //                 min: Math.min(...dataset.map(d => d.start)),
+    //                 max: Math.max(...dataset.map(d => d.end)),
+    //                 ticks: {
+    //                     callback: val => new Date(val).toLocaleDateString()
+    //                 },
+    //                 title: { display: true, text: 'Date Range' }
+    //             },
+    //             y: {
+    //                 title: { display: true, text: 'Sensor (Substation)' },
+    //                 ticks: { autoSkip: false }
+    //             }
+    //         }
+    //     }
+    // });
+
+    document.getElementById('substationFilter').addEventListener('change', function () {
+        const selected = this.value;
+
+        const filtered = selected
+            ? dataset.filter(d => d.substation === selected)
+            : dataset;
+
+        chart.data.labels = [...new Set(filtered.map(d => d.y))];
+        chart.data.datasets[0].data = filtered;
+        chart.update();
+    });
+
+    const raw = @json($statusTimelineData); // Blade or your JS variable
+
+    // Convert and enhance data
+    const now = new Date();
+    const last30Days = new Date();
+    last30Days.setDate(now.getDate() - 30);
+
+    const dataset = raw
+        .map(d => {
+            const start = new Date(d.created_at).getTime();
+            const end = d.resolved_at ? new Date(d.resolved_at).getTime() : now.getTime();
+            return {
+                x: [start, end],
+                y: `${d.tag} (${d.substation_name})`,
+                status: d.new_status,
+                duration: (end - start) / 3600000, // in hours
+                start,
+                end,
+                substation: d.substation_name
+            };
+        })
+        .filter(d => d.end >= last30Days.getTime()) // ✅ Limit to last 30 days
+        .sort((a, b) => {
+            // ✅ Sort by substation first, then tag
+            const subCompare = a.substation.localeCompare(b.substation);
+            if (subCompare !== 0) return subCompare;
+            return a.y.localeCompare(b.y);
+        });
+
+    const chart = new Chart(document.getElementById('statusTimelineChart'), {
+        type: 'bar',
+        data: {
+            labels: [...new Set(dataset.map(d => d.y))], // Unique y labels
+            datasets: [{
+                label: 'Sensor Status Timeline',
+                data: dataset,
+                backgroundColor: dataset.map(d =>
+                    d.status === 'offline' ? '#dc3545' :
+                    d.status === 'repairing' ? '#ffc107' :
+                    '#198754'
+                ),
+                parsing: {
+                    xAxisKey: 'x',
+                    yAxisKey: 'y'
+                },
+                borderRadius: 2,
+                barThickness: 16
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: ctx => {
+                            const d = ctx.raw;
+                            const from = new Date(d.start).toLocaleString();
+                            const to = new Date(d.end).toLocaleString();
+                            return [
+                                `🟢 Status: ${d.status}`,
+                                `📅 From: ${from}`,
+                                `📅 To: ${to}`,
+                                `⏱️ Duration: ${d.duration.toFixed(1)} hrs`
+                            ];
+                        }
+                    },
+                    bodyFont: { size: 12 },
+                    titleFont: { weight: 'bold' }
+                },
+                legend: { display: false },
+                title: {
+                    display: true,
+                    text: 'Sensor Status Timeline',
+                    font: { size: 16 }
+                }
+            },
+            scales: {
+                x: {
+                    type: 'linear',
+                    min: Math.min(...dataset.map(d => d.start)),
+                    max: Math.max(...dataset.map(d => d.end)),
+                    ticks: {
+                        callback: val => new Date(val).toLocaleDateString()
+                    },
+                    title: {
+                        display: true,
+                        text: 'Date Range'
+                    }
+                },
+                y: {
+                    ticks: {
+                        autoSkip: false,
+                        padding: 6
+                    },
+                    title: {
+                        display: true,
+                        text: 'Sensor (Substation)'
+                    }
+                }
+            }
+        }
+    });
+
+
+
 </script>
 
 
