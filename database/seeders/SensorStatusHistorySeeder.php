@@ -50,21 +50,23 @@ class SensorStatusHistorySeeder extends Seeder
     // }
     public function run(): void
     {
-        // This will delete all existing records in sensor_status_histories
-        \DB::table('sensor_status_histories')->truncate();
+        //Clear old data to avoid duplicates
+        DB::table('sensor_status_histories')->truncate();
 
-        $sensorIds = \DB::table('sensors')->pluck('id')->toArray();
+        //Get sensor IDs
+        $sensorIds = DB::table('sensors')->pluck('id')->toArray();
 
-        $userIds = \DB::table('users')
-            ->whereIn('role', ['admin', 'maintenance'])
+        //Get only the real admin & maintenance team user IDs
+        $userIds = DB::table('users')
+            ->whereIn('email', ['admin@geoswitch.com', 'maint@geoswitch.com'])
             ->pluck('id')
             ->toArray();
 
         $statuses = ['online', 'offline', 'repairing'];
 
         foreach ($sensorIds as $sensorId) {
-            foreach (range(1, 4) as $month) { // Jan to April
-                for ($i = 0; $i < rand(2, 4); $i++) {
+            foreach (range(1, 4) as $month) { // Seed Jan to April
+                for ($i = 0; $i < rand(2, 3); $i++) {
                     $userId = collect($userIds)->random();
                     $oldStatus = collect($statuses)->random();
 
@@ -72,9 +74,9 @@ class SensorStatusHistorySeeder extends Seeder
                         $newStatus = collect($statuses)->random();
                     } while ($newStatus === $oldStatus);
 
-                    $date = \Carbon\Carbon::create(2025, $month, rand(1, 28))->setTime(rand(0, 23), rand(0, 59));
+                    $date = Carbon::create(2025, $month, rand(1, 28))->setTime(rand(0, 23), rand(0, 59));
 
-                    \DB::table('sensor_status_histories')->insert([
+                    DB::table('sensor_status_histories')->insert([
                         'sensor_id'   => $sensorId,
                         'user_id'     => $userId,
                         'old_status'  => $oldStatus,
@@ -87,7 +89,7 @@ class SensorStatusHistorySeeder extends Seeder
             }
         }
 
-        echo "Sensor status history seeded with clean data (Jan–Apr 2025).\n";
+        echo "Sensor status history seeded for real users only (admin & maintenance).\n";
     }
 
 }

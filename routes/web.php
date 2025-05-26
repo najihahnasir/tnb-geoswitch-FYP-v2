@@ -16,6 +16,7 @@ use App\Http\Controllers\SensorController;
 use App\Http\Controllers\SubstationController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\SensorAnalyticsController;
+use App\Http\Controllers\LogReportController;
 
 
 
@@ -72,6 +73,21 @@ Route::get('/popup-test', function () {
     return view('partial-dashboard.alert-popup');
 });
 
+// Route::controller(LogReportController::class)->prefix('log-reports')->middleware('auth')->group(function () {
+//     Route::get('/', 'index')->name('log-reports.index');
+//     Route::get('/create', 'create')->name('log-reports.create');
+//     Route::post('/', 'store')->name('log-reports.store');
+//     Route::get('/{logReport}', 'show')->name('log-reports.show');
+//     Route::post('/{logReport}/resolve', 'resolve')->name('log-reports.resolve');
+// });
+
+Route::get('/log-reports', [LogReportController::class, 'index'])->name('log-reports.index');
+Route::get('/log-reports/create', [LogReportController::class, 'create'])->name('log-reports.create');
+Route::post('/log-reports', [LogReportController::class, 'store'])->name('log-reports.store');
+Route::get('/log-reports/{logReport}', [LogReportController::class, 'show'])->name('log-reports.show');
+Route::post('/log-reports/{logReport}/resolve', [LogReportController::class, 'resolve'])->name('log-reports.resolve');
+
+
 
 
 
@@ -91,6 +107,13 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/change-password', [ProfileController::class, 'changePassword'])->name('profile.change-password');
 
+    Route::get('/log-reports', [LogReportController::class, 'index'])->name('log-reports.index');
+    Route::get('/log-reports/create', [LogReportController::class, 'create'])->name('log-reports.create');
+    Route::post('/log-reports', [LogReportController::class, 'store'])->name('log-reports.store');
+    Route::get('/log-reports/{logReport}', [LogReportController::class, 'show'])->name('log-reports.show');
+    Route::post('/log-reports/{logReport}/resolve', [LogReportController::class, 'resolve'])->name('log-reports.resolve');
+
+    
     Route::get('/search', function (Request $request) {
         $query = $request->input('query');
         $results = []; // Replace with actual search logic.

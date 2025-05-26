@@ -85,6 +85,12 @@
                                 <span class="hide-menu">Register New Sensor</span>
                             </a>
                         </li>
+                        <li class="sidebar-item">
+                            <a href="{{ route('log-reports.index') }}" class="sidebar-link">
+                                <i class="ri-file-upload-line"></i>
+                                <span class="hide-menu">Report OfflineSensor</span>
+                            </a>
+                        </li>
                     </ul>
                 </li>
 
