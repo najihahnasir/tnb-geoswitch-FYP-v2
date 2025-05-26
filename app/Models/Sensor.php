@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Sensor extends Model
 {
     protected $fillable = ['switchgear_id','type','tag',];
+    protected $dates = ['status_changed_at'];
     
     public function switchgear()
     {
@@ -27,6 +28,12 @@ class Sensor extends Model
     {
         return $this->hasMany(SensorStatusHistory::class);
     }
+
+    public function latestLogReport()
+    {
+        return $this->hasOne(SensorLogReport::class)->latestOfMany();
+    }
+
 
 
 }

@@ -112,6 +112,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/log-reports', [LogReportController::class, 'store'])->name('log-reports.store');
     Route::get('/log-reports/{logReport}', [LogReportController::class, 'show'])->name('log-reports.show');
     Route::post('/log-reports/{logReport}/resolve', [LogReportController::class, 'resolve'])->name('log-reports.resolve');
+    Route::get('/log-reports/{id}/edit-status', [LogReportController::class, 'editStatus'])->name('log-reports.editStatus');
+    Route::put('/log-reports/{id}/update-status', [LogReportController::class, 'updateStatus'])->name('log-reports.updateStatus');
+
 
     
     Route::get('/search', function (Request $request) {

@@ -115,6 +115,15 @@
                                 <a href="{{ route('sensors.show', $sensor->id) }}" class="btn btn-outline-secondary btn-sm">
                                     <i class="fas fa-eye me-1"></i> View
                                 </a>
+                                @foreach($sensors as $sensor)
+                                    @if($sensor->latestLogReport)
+                                        <a href="{{ route('log-reports.editStatus', $sensor->latestLogReport->id) }}" class="btn btn-primary">
+                                            Edit Sensor Status
+                                        </a>
+                                    @else
+                                        <span class="text-muted">No report</span>
+                                    @endif
+                                @endforeach
                             </div>
                         </td>
                     </tr>

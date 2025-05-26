@@ -85,19 +85,44 @@ class LogReportController extends Controller
         return redirect()->route('log-reports.index')->with('success', 'Report resolved successfully.');
     }
 
-    public function updateStatus(Request $request, $id)
+    public function editStatus($id)
     {
-        $request->validate([
-            'sensor_status' => 'required|in:online,repairing',
-        ]);
-
-        $report = SensorLogReport::findOrFail($id);
+        $report = SensorLogReport::with('sensor')->findOrFail($id);
         $sensor = $report->sensor;
+        $downDuration = 'N/A';
 
-        $sensor->status = $request->sensor_status;
-        $sensor->save();
+        if (in_array($sensor->status, ['offline', 'repairing']) && $sensor->status_changed_at) {
+            // Calculate how long the sensor has been down
+            $downDuration = $sensor->status_changed_at->diffForHumans();
+        }
 
-        return redirect()->back()->with('success', 'Sensor status updated.');
+        return view('log-reports.edit', compact('report', 'downDuration'));
     }
 
+
+    public function updateStatus(Request $request, $id)
+    {
+        $report = SensorLogReport::with('sensor')->findOrFail($id);
+
+        $request->validate([
+            'sensor_status' => 'required|in:online,offline,repairing',
+        ]);
+
+        if ($request->sensor_status === $report->sensor->status) {
+            return back()
+                ->withErrors(['sensor_status' => 'The sensor is already in this status.'])
+                ->withInput();
+        }
+
+        // Update sensor status and status_changed_at only if changed
+        $sensor = $report->sensor;
+        if ($sensor->status !== $request->sensor_status) {
+            $sensor->status = $request->sensor_status;
+            $sensor->status_changed_at = now();
+            $sensor->save();
+        }
+
+        return redirect()->route('log-reports.show', $report->id)
+                        ->with('success', 'Sensor status updated successfully.');
+    }
 }

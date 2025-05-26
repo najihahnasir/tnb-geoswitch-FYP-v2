@@ -38,39 +38,83 @@ class SensorController extends Controller
     //     return view('sensors.manage', compact('sensors', 'filter'));
     // }
 
+    // latest to refer
+    // public function index(Request $request)
+    // {
+    //     $sensors = Sensor::with(['switchgear.substation', 'latestLogReport'])->get();
+
+    //     $filter = $request->input('filter');
+    //     $substationId = $request->input('substation');
+    //     $sensorTag = $request->input('sensor');
+    //     $sensorType = $request->input('type');
+
+    //     $onlineCount = Sensor::where('status', 'online')->count();
+    //     $repairingCount = Sensor::where('status', 'repairing')->count();
+    //     $offlineCount = Sensor::where('status', 'offline')->count();
+
+    //     $substationName = $request->input('substation');
+        
+
+    //     $query = Sensor::with('switchgear.substation');
+
+    //     if (in_array($filter, ['online', 'offline', 'repairing'])) {
+    //         $query->where('status', $filter);
+    //     }
+
+    //     // if ($substationId) {
+    //     //     $query->whereHas('switchgear.substation', function ($q) use ($substationId) {
+    //     //         $q->where('id', $substationId);
+    //     //     });
+    //     // }
+
+    //     if ($substationName) {
+    //         $query->whereHas('switchgear.substation', function ($q) use ($substationName) {
+    //             $q->where('substation_name', $substationName);
+    //         });
+    //     }
+
+    //     if ($sensorTag) {
+    //         $query->where('tag', 'like', '%' . $sensorTag . '%');
+    //     }
+
+    //     if ($sensorType) {
+    //         $query->where('type', $sensorType);
+    //     }
+
+    //     $sensors = $query->paginate(10);
+    //     $substations = \App\Models\Substation::all(); // ✅ Add this
+    //     $sensorTypes = Sensor::select('type')->distinct()->pluck('type');
+
+    //     return view('sensors.manage', compact(
+    //         'sensors', 
+    //         'filter', 
+    //         'substations', 
+    //         'substationId', 
+    //         'sensorTag', 
+    //         'sensorTypes',
+    //         'onlineCount',
+    //         'repairingCount',
+    //         'offlineCount'
+    //     ));
+    // }
     public function index(Request $request)
     {
-        $sensors = Sensor::with(['switchgear.substation'])->get();
-
         $filter = $request->input('filter');
         $substationId = $request->input('substation');
         $sensorTag = $request->input('sensor');
         $sensorType = $request->input('type');
 
-        $onlineCount = Sensor::where('status', 'online')->count();
-        $repairingCount = Sensor::where('status', 'repairing')->count();
-        $offlineCount = Sensor::where('status', 'offline')->count();
-
-        $substationName = $request->input('substation');
-        
-
-        $query = Sensor::with('switchgear.substation');
+        $query = Sensor::with(['switchgear.substation', 'latestLogReport']);
 
         if (in_array($filter, ['online', 'offline', 'repairing'])) {
             $query->where('status', $filter);
         }
 
-        // if ($substationId) {
-        //     $query->whereHas('switchgear.substation', function ($q) use ($substationId) {
-        //         $q->where('id', $substationId);
-        //     });
-        // }
-
-        if ($substationName) {
-        $query->whereHas('switchgear.substation', function ($q) use ($substationName) {
-            $q->where('substation_name', $substationName);
-        });
-}
+        if ($substationId) {
+            $query->whereHas('switchgear.substation', function ($q) use ($substationId) {
+                $q->where('id', $substationId);
+            });
+        }
 
         if ($sensorTag) {
             $query->where('tag', 'like', '%' . $sensorTag . '%');
@@ -81,21 +125,27 @@ class SensorController extends Controller
         }
 
         $sensors = $query->paginate(10);
-        $substations = \App\Models\Substation::all(); // ✅ Add this
+
+        $substations = \App\Models\Substation::all();
         $sensorTypes = Sensor::select('type')->distinct()->pluck('type');
 
+        $onlineCount = Sensor::where('status', 'online')->count();
+        $repairingCount = Sensor::where('status', 'repairing')->count();
+        $offlineCount = Sensor::where('status', 'offline')->count();
+
         return view('sensors.manage', compact(
-            'sensors', 
-            'filter', 
-            'substations', 
-            'substationId', 
-            'sensorTag', 
+            'sensors',
+            'filter',
+            'substations',
+            'substationId',
+            'sensorTag',
             'sensorTypes',
             'onlineCount',
             'repairingCount',
             'offlineCount'
         ));
     }
+
 
     /**
      * Show the form for creating a new resource.
