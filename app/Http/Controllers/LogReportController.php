@@ -36,6 +36,8 @@ class LogReportController extends Controller
             'substation_id' => 'required|exists:substations,id',
             'switchgear_id' => 'required|exists:switchgears,id',
             'sensor_id'     => 'required|exists:sensors,id',
+            'sensor_status' => 'required|in:offline,repairing',
+            'reported_at'   => 'required|date',
             'title'         => 'required|string|max:255',
             'description'   => 'nullable|string',
         ]);
@@ -50,6 +52,11 @@ class LogReportController extends Controller
             'reported_at'   => now(),
             'status'        => 'open',
         ]);
+
+        // Update sensor status in Sensor table
+        $sensor = Sensor::findOrFail($request->sensor_id);
+        $sensor->status = $request->sensor_status;
+        $sensor->save();
 
         return redirect()->route('log-reports.index')->with('success', 'Sensor issue reported successfully.');
     }
@@ -77,4 +84,20 @@ class LogReportController extends Controller
 
         return redirect()->route('log-reports.index')->with('success', 'Report resolved successfully.');
     }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $request->validate([
+            'sensor_status' => 'required|in:online,repairing',
+        ]);
+
+        $report = SensorLogReport::findOrFail($id);
+        $sensor = $report->sensor;
+
+        $sensor->status = $request->sensor_status;
+        $sensor->save();
+
+        return redirect()->back()->with('success', 'Sensor status updated.');
+    }
+
 }

@@ -88,7 +88,13 @@
                         <li class="sidebar-item">
                             <a href="{{ route('log-reports.index') }}" class="sidebar-link">
                                 <i class="ri-file-upload-line"></i>
-                                <span class="hide-menu">Report OfflineSensor</span>
+                                <span class="hide-menu">Report Offline Sensor</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="{{ route('log-reports.create') }}" class="sidebar-link">
+                                <i class="ri-file-upload-line"></i>
+                                <span class="hide-menu">Create Report Offline </span>
                             </a>
                         </li>
                     </ul>

@@ -42,6 +42,15 @@
         </div>
 
         <div class="mb-3">
+            <label for="sensor_status" class="form-label">Sensor Status</label>
+            <select class="form-select" name="sensor_status" id="sensor_status" required>
+                <option value="">-- Select Status --</option>
+                <option value="offline">Offline</option>
+                <option value="repairing">Repairing</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
             <label for="title" class="form-label">Title</label>
             <input type="text" name="title" id="title" class="form-control" value="{{ old('title') }}" required>
             @error('title')<small class="text-danger">{{ $message }}</small>@enderror
