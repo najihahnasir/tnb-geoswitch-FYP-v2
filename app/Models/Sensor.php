@@ -47,11 +47,6 @@ class Sensor extends Model
         return $this->hasOne(SensorMeasurement::class)->latestOfMany();
     }
 
-    public function statusHistory()
-    {
-        return $this->hasMany(SensorStatusHistory::class);
-    }
-
     public function latestLogReport()
     {
         return $this->hasOne(SensorLogReport::class)->latestOfMany();

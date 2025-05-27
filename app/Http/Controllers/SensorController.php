@@ -171,7 +171,7 @@ class SensorController extends Controller
     public function show(Sensor $sensor)
     {
         // Eager load all needed relationships at once
-        $sensor->load(['switchgear.substation', 'logReports.reporter', 'statusHistory.user']);
+        $sensor->load(['switchgear.substation', 'logReports.reporter']);
 
         // Return your view — update view name if needed ('sensors.view' or 'sensors.show')
         return view('sensors.view', compact('sensor'));
