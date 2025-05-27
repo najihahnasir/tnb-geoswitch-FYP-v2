@@ -2,108 +2,46 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Switchgear;
 use App\Models\Substation;
 
 class SwitchgearSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // Get all substations to ensure we have correct IDs
-        $substations = Substation::all()->keyBy('substation_name');
-        
-        $switchgears = [
-            // // Existing switchgears (keep these)
-            // [
-            //     'substation_id' => $substations['PPU TASIK TAMBAHAN']->id ?? 4, 
-            //     'name' => 'Feeder 4P5',
-            //     'lineup' => '33kV Lineup',
-            //     'panel' => 'Feeder 4P5',
-            //     'compartment' => 'CB - Top',
-            //     'created_at' => now(),
-            //     'updated_at' => now()
-            // ],
-            // [
-            //     'substation_id' => $substations['PPU TASIK TAMBAHAN']->id ?? 4,
-            //     'name' => 'Feeder 2P5',
-            //     'lineup' => '33kV Lineup',
-            //     'panel' => 'Feeder 2P5',
-            //     'compartment' => 'Main busbar',
-            //     'created_at' => now(),
-            //     'updated_at' => now()
-            // ],
-            // Add more existing ones if needed...
-
-            // New switchgears for added substations
-            [
-                'substation_id' => $substations['PPU Wangsa Maju']->id, 
-                'name' => 'Feeder 4P5',
-                'lineup' => '33kV Lineup',
-                'panel' => 'Feeder 4P5',
-                'compartment' => 'CB - Top',
-                'created_at' => now(),
-                'updated_at' => now()
-            ],
-            [
-                'substation_id' => $substations['PPU Alam Damai']->id,
-                'name' => 'Feeder 2P5',
-                'lineup' => '33kV Lineup',
-                'panel' => 'Feeder 2P5',
-                'compartment' => 'Main busbar',
-                'created_at' => now(),
-                'updated_at' => now()
-            ],
-            [
-                'substation_id' => $substations['PPU HUKM']->id,
-                'name' => 'Feeder 2P5',
-                'lineup' => '33kV Lineup',
-                'panel' => 'Feeder 2P5',
-                'compartment' => 'Main busbar',
-                'created_at' => now(),
-                'updated_at' => now()
-            ],
-            [
-                'substation_id' => $substations['PPU Yow Chuan']->id, 
-                'name' => 'Feeder 4P5',
-                'lineup' => '33kV Lineup',
-                'panel' => 'Feeder 4P5',
-                'compartment' => 'CB - Top',
-                'created_at' => now(),
-                'updated_at' => now()
-            ],
-            [
-                'substation_id' => $substations['PMU KLCC']->id,
-                'name' => 'Feeder 2P5',
-                'lineup' => '33kV Lineup',
-                'panel' => 'Feeder 2P5',
-                'compartment' => 'Main busbar',
-                'created_at' => now(),
-                'updated_at' => now()
-            ],
-            [
-                'substation_id' => $substations['PMU Bandar Tun Razak']->id, 
-                'name' => 'Feeder 4P5',
-                'lineup' => '33kV Lineup',
-                'panel' => 'Feeder 4P5',
-                'compartment' => 'CB - Top',
-                'created_at' => now(),
-                'updated_at' => now()
-            ]
+        // Define layout for each panel (shared across all substations)
+        $panels = [
+            'Bus Section 30' => ['Main Busbar', 'Reserve Busbar'],
+            'Bus Coupler 34' => ['Main Busbar', 'Reserve Busbar'],
+            'Feeder 1' => ['Main Busbar', 'Reserve Busbar', 'CB - TOP', 'CB - BOTTOM', 'Cable Compartment'],
+            'Feeder 2' => ['Main Busbar', 'Reserve Busbar', 'CB - TOP', 'CB - BOTTOM', 'Cable Compartment'],
+            'Feeder 3' => ['Main Busbar', 'Reserve Busbar', 'CB - TOP', 'CB - BOTTOM', 'Cable Compartment'],
         ];
 
-        foreach ($switchgears as $gear) {
-            Switchgear::updateOrInsert(
-                [
-                    'substation_id' => $gear['substation_id'],
-                    'name' => $gear['name']
-                ],
-                $gear
-            );
+        // Loop all substations and assign the same layout
+        $substations = \App\Models\Substation::all();
+
+        foreach ($substations as $substation) {
+            foreach ($panels as $panel => $compartments) {
+                foreach ($compartments as $compartment) {
+                    Switchgear::updateOrInsert([
+                        'substation_id' => $substation->id,
+                        'panel' => $panel,
+                        'compartment' => $compartment,
+                    ], [
+                        'substation_id' => $substation->id,
+                        'name' => $panel,
+                        'lineup' => '11kV Lineup',
+                        'panel' => $panel,
+                        'compartment' => $compartment,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
         }
+
+        echo "✅ Switchgears seeded for all substations with standardized layout.\n";
     }
 }
