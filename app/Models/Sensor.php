@@ -6,8 +6,31 @@ use Illuminate\Database\Eloquent\Model;
 
 class Sensor extends Model
 {
-    protected $fillable = ['switchgear_id','type','tag',];
-    protected $dates = ['status_changed_at'];
+    protected $fillable = [
+        'substation_id',
+        'switchgear_id',
+        'sensor_id',
+        'reported_by',
+        'title',
+        'description',
+        'status',
+        'reported_at',
+        'resolved_at',
+        'remark',
+        'old_status',
+        'new_status',
+        'status_changed_by',
+        'status_changed_at',
+    ];
+
+    protected $dates = [
+        'reported_at',
+        'resolved_at',
+        'status_changed_at',
+        'created_at',
+        'updated_at',
+    ];
+
     
     public function switchgear()
     {
@@ -34,6 +57,22 @@ class Sensor extends Model
         return $this->hasOne(SensorLogReport::class)->latestOfMany();
     }
 
-
-
+    public function logReports()
+    {
+        return $this->hasMany(SensorLogReport::class);
+    }
+    /**
+     * The user who reported this log.
+     */
+    public function reporter(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reported_by');
+    }
+    /**
+     * The user who changed the sensor status related to this report.
+     */
+    public function statusChanger(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'status_changed_by');
+    }
 }

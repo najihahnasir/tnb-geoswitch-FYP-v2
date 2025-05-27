@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\SensorService;
 use App\Models\Sensor;
 use App\Models\SensorStatusHistory;
 use Illuminate\Http\Request;
@@ -169,9 +170,13 @@ class SensorController extends Controller
      */
     public function show(Sensor $sensor)
     {
-        $sensor->load(['switchgear.substation', 'statusHistory.user']); // ensure this matches your model
+        // Eager load all needed relationships at once
+        $sensor->load(['switchgear.substation', 'logReports.reporter', 'statusHistory.user']);
+
+        // Return your view — update view name if needed ('sensors.view' or 'sensors.show')
         return view('sensors.view', compact('sensor'));
     }
+
 
 
     /**
@@ -185,26 +190,59 @@ class SensorController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Sensor $sensor)
+    // public function update(Request $request, Sensor $sensor)
+    // {
+    //     $request->validate([
+    //         'status' => 'required|in:online,offline,repairing'
+    //     ]);
+    
+    //     // Record the status change
+    //     SensorStatusHistory::create([
+    //         'sensor_id' => $sensor->id,
+    //         'user_id' => Auth::id(),
+    //         'old_status' => $sensor->status,
+    //         'new_status' => $request->status,
+    //     ]);
+    
+    //     // Update sensor status
+    //     $sensor->status = $request->status;
+    //     $sensor->save();
+    
+    //     return redirect()->back()->with('success', 'Sensor status updated successfully.');
+    // }
+    // Example: updating status change info in updateStatus method
+    public function updateStatus(Request $request, $id)
     {
+        $report = SensorLogReport::with('sensor')->findOrFail($id);
+        $sensor = $report->sensor;
+
         $request->validate([
-            'status' => 'required|in:online,offline,repairing'
+            'sensor_status' => 'required|in:online,offline,repairing',
         ]);
-    
-        // Record the status change
-        SensorStatusHistory::create([
-            'sensor_id' => $sensor->id,
-            'user_id' => Auth::id(),
-            'old_status' => $sensor->status,
-            'new_status' => $request->status,
-        ]);
-    
-        // Update sensor status
-        $sensor->status = $request->status;
+
+        if ($request->sensor_status === $sensor->status) {
+            return back()->withErrors(['sensor_status' => 'The sensor is already in this status.'])->withInput();
+        }
+
+        $oldStatus = $sensor->status;
+        $newStatus = $request->sensor_status;
+
+        // Update sensor status and timestamp
+        $sensor->status = $newStatus;
+        $sensor->status_changed_at = now();
         $sensor->save();
-    
-        return redirect()->back()->with('success', 'Sensor status updated successfully.');
+
+        // Update report with status change info
+        $report->old_status = $oldStatus;
+        $report->new_status = $newStatus;
+        $report->status_changed_by = auth()->id();
+        $report->status_changed_at = now();
+        $report->save();
+
+        return redirect()->route('sensors.show', $report->id)
+                        ->with('success', 'Sensor status updated successfully.');
     }
+
     
 
     /**

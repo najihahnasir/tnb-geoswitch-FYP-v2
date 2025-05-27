@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', 'Report Log Sensor')
-@section('page-title', 'Register Sensor')
+@section('page-title', 'Log Summary')
 
 @section('content')
 <div class="container">
