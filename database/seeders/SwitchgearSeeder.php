@@ -10,7 +10,7 @@ class SwitchgearSeeder extends Seeder
 {
     public function run(): void
     {
-        // Define layout for each panel (shared across all substations)
+        // Standard layout for all substations
         $panels = [
             'Bus Section 30' => ['Main Busbar', 'Reserve Busbar'],
             'Bus Coupler 34' => ['Main Busbar', 'Reserve Busbar'],
@@ -19,12 +19,13 @@ class SwitchgearSeeder extends Seeder
             'Feeder 3' => ['Main Busbar', 'Reserve Busbar', 'CB - TOP', 'CB - BOTTOM', 'Cable Compartment'],
         ];
 
-        // Loop all substations and assign the same layout
-        $substations = \App\Models\Substation::all();
+        $substations = Substation::all();
 
         foreach ($substations as $substation) {
             foreach ($panels as $panel => $compartments) {
                 foreach ($compartments as $compartment) {
+                    $displayName = "$panel - $compartment";
+
                     Switchgear::updateOrInsert([
                         'substation_id' => $substation->id,
                         'panel' => $panel,
@@ -32,16 +33,16 @@ class SwitchgearSeeder extends Seeder
                     ], [
                         'substation_id' => $substation->id,
                         'name' => $panel,
+                        'display_name' => $displayName,
                         'lineup' => '11kV Lineup',
                         'panel' => $panel,
                         'compartment' => $compartment,
-                        'created_at' => now(),
                         'updated_at' => now(),
                     ]);
                 }
             }
         }
 
-        echo "✅ Switchgears seeded for all substations with standardized layout.\n";
+        echo "✅ Switchgears updated with display_name, no duplication created.\n";
     }
 }

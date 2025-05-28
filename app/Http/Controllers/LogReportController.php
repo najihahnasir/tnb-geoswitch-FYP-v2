@@ -57,12 +57,13 @@ class LogReportController extends Controller
             'title'             => $request->title,
             'description'       => $request->description,
             'reported_at'       => now(),
-            'status'            => 'open',  // Initial report status
-            'old_status'        => $oldStatus,
+            'status'            => 'open',
+            'old_status'        => $sensor->status,
             'new_status'        => $newStatus,
             'status_changed_by' => Auth::id(),
-            'status_changed_at' => now(),
+            'status_changed_at' => now(), // ✅ required to prevent SQL error
         ]);
+
 
         // Update sensor status and timestamp
         // $sensor->status = $newStatus;

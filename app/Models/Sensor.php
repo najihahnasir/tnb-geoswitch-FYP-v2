@@ -70,4 +70,21 @@ class Sensor extends Model
     {
         return $this->belongsTo(User::class, 'status_changed_by');
     }
+
+    // Accessor for the "status" attribute
+    public function getStatusAttribute($value)
+    {
+        return ucfirst($value); // online → Online, offline → Offline
+    }
+
+    // Accessor for the "type" attribute
+    public function getTypeAttribute($value)
+    {
+        return match ($value) {
+            'thermal' => 'Thermal',
+            'partial_discharge' => 'Partial Discharge',
+            default => ucfirst($value),
+        };
+    }
+
 }
