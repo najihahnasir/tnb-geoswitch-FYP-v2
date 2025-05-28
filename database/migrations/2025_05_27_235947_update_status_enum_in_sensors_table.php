@@ -11,9 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        {
-            DB::statement("ALTER TABLE sensors MODIFY status ENUM('Online', 'Offline', 'Repairing') DEFAULT 'Online'");
-        }
+        DB::statement("ALTER TABLE sensors MODIFY status ENUM('online', 'offline', 'repairing') DEFAULT 'online'");
     }
 
     /**

@@ -21,6 +21,7 @@ class Sensor extends Model
         'new_status',
         'status_changed_by',
         'status_changed_at',
+        'downtime_duration',
     ];
 
     protected $dates = [
@@ -30,6 +31,13 @@ class Sensor extends Model
         'created_at',
         'updated_at',
     ];
+
+    protected $casts = [
+        'reported_at' => 'datetime',
+        'status_changed_at' => 'datetime', // ✅ Ensure this is casted!
+        'resolved_at' => 'datetime',
+    ];
+
 
     
     public function switchgear()

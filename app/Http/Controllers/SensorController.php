@@ -134,6 +134,12 @@ class SensorController extends Controller
         $repairingCount = Sensor::where('status', 'repairing')->count();
         $offlineCount = Sensor::where('status', 'offline')->count();
 
+        // dd([
+        //     'online' => $onlineCount,
+        //     'repairing' => $repairingCount,
+        //     'offline' => $offlineCount,
+        // ]);
+
         return view('sensors.manage', compact(
             'sensors',
             'filter',

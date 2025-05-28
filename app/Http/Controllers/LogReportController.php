@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 use App\Services\SensorService;
+// use Carbon\Carbon;
 use App\Models\Sensor;
 use App\Models\Substation;
 use App\Models\Switchgear;
@@ -14,15 +15,23 @@ class LogReportController extends Controller
 {
     public function index()
     {
-        // logger('✅ LogReportController@index called');
-        $reports = SensorLogReport::with(['substation', 'switchgear', 'sensor', 'reporter'])
+        $reports = SensorLogReport::with(['substation', 'switchgear', 'sensor', 'reporter','statusChanger'])
             ->latest('reported_at')
             ->get();
 
-        // dd($reports);
+        // Calculate fallback duration
+        foreach ($reports as $report) {
+            if (!$report->downtime_duration && $report->reported_at && $report->resolved_at) {
+                $diff = $report->reported_at->diff($report->resolved_at);
+                $report->calculated_duration = $diff->days . 'd ' . $diff->h . 'h ' . $diff->i . 'm';
+            } else {
+                $report->calculated_duration = $report->downtime_duration; // use DB value if exists
+            }
+        }
 
         return view('log-reports.index', compact('reports'));
     }
+
 
     public function create()
     {
@@ -77,6 +86,8 @@ class LogReportController extends Controller
 
     public function show(SensorLogReport $logReport)
     {
+        $logReport->load(['substation', 'switchgear', 'sensor', 'reporter', 'statusChanger']);
+
         return view('log-reports.show', compact('logReport'));
     }
 
@@ -109,7 +120,7 @@ class LogReportController extends Controller
             // Calculate how long the sensor has been down
             $downDuration = $sensor->status_changed_at->diffForHumans();
         }
-        dd($report->sensor->status);
+        // dd($report->sensor->status);
         return view('log-reports.edit', compact('report', 'downDuration'));
     }
 
@@ -124,32 +135,46 @@ class LogReportController extends Controller
         ]);
 
         if ($request->sensor_status === $sensor->status) {
-            return back()
-                ->withErrors(['sensor_status' => 'The sensor is already in this status.'])
-                ->withInput();
+            return back()->withErrors(['sensor_status' => 'The sensor is already in this status.'])->withInput();
         }
 
         $oldStatus = $sensor->status;
         $newStatus = $request->sensor_status;
 
-        // Update sensor status and timestamp
-        // $sensor->status = $newStatus;
-        // $sensor->status_changed_at = now();
-        // $sensor->save();
+        // Update the sensor itself
+        $sensor->status = $newStatus;
+        $sensor->status_changed_at = now();
+        $sensor->save();
 
-        SensorService::updateSensorStatus($sensor, $newStatus, $report);
+        // Update the log report
+        $report->old_status = $oldStatus;
+        $report->new_status = $newStatus;
+        $report->status_changed_by = auth()->id();
+        $report->status_changed_at = now();
 
-        // Update the log report with status change info
-        // $report->old_status = $oldStatus;
-        // $report->new_status = $newStatus;
-        // $report->status_changed_by = auth()->id();
-        // $report->status_changed_at = now();
-        // $report->save();
+        // 🟢 Auto-resolve if new status is ONLINE
+        if ($newStatus === 'online') {
+            $report->status = 'resolved';
+            $report->resolved_at = now();
+        }
 
-        SensorService::updateSensorStatus($sensor, $newStatus, $report);
+        // 🟡 Calculate downtime duration if applicable
+        // ✅ Always calculate downtime duration when timestamps are available
+        // if ($report->reported_at && $sensor->status_changed_at) {
+        //     $diff = $report->reported_at->diff($sensor->status_changed_at);
+        //     $report->downtime_duration = $diff->days . 'd ' . $diff->h . 'h ' . $diff->i . 'm';
+        // }
+        if ($report->reported_at && $report->resolved_at) {
+            $diff = $report->reported_at->diff($report->resolved_at);
+            $report->downtime_duration = "{$diff->d}d {$diff->h}h {$diff->i}m";
+        }
 
-        return redirect()->route('log-reports.show', $report->id)
-                        ->with('success', 'Sensor status updated successfully.');
+
+
+        $report->save();
+        // $report->refresh(); // reload from DB
+        // dd($report->status_changed_by, $report->status_changed_at);
+
+        return redirect()->route('sensors.show', $sensor->id)->with('success', 'Sensor status updated and report resolved.');
     }
-
 }

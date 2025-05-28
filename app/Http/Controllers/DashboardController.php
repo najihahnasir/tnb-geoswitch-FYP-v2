@@ -18,9 +18,10 @@ class DashboardController extends Controller
         $sensors = Sensor::with('switchgear.substation')->get();
         $substations = Substation::all();
 
-        $onlineSensors = $sensors->where('status', 'online');
-        $repairingSensors = $sensors->where('status', 'repairing');
-        $offlineSensors = $sensors->where('status', 'offline');
+        $onlineSensors = $sensors->filter(fn($s) => strtolower($s->status) === 'online');
+        $repairingSensors = $sensors->filter(fn($s) => strtolower($s->status) === 'repairing');
+        $offlineSensors = $sensors->filter(fn($s) => strtolower($s->status) === 'offline');
+
 
         //summary for popup alert (top 3 offline)
         $offlineSummary = $offlineSensors->take(3)->map(function ($sensor) {
