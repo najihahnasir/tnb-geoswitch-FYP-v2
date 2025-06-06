@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Substation;
+use App\Models\Sensor;
+use App\Models\SensorLogReport;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SubstationController extends Controller
 {
@@ -17,24 +20,33 @@ class SubstationController extends Controller
 
     public function summary()
     {
-        $substations = \App\Models\Substation::with(['switchgears.sensors'])->get();
+        // ✅ Step 1: Fetch all substations with related sensors
+        $substations = Substation::with('switchgears.sensors')->get();
 
+        // ✅ Step 2: Process each substation for sensor status summary
         $summaryData = $substations->map(function ($substation) {
             $sensors = $substation->switchgears->flatMap->sensors;
 
+            $statuses = $sensors->pluck('status')->filter();
+
             $substation->total_sensors = $sensors->count();
-            $substation->online = $sensors->where('status', 'online')->count();
-            $substation->offline = $sensors->where('status', 'offline')->count();
-            $substation->repairing = $sensors->where('status', 'repairing')->count();
-            $substation->last_updated = optional($sensors->sortByDesc('updated_at')->first())->updated_at;
-            $substation->top_issue = optional(
-                $sensors->groupBy('type')->sortByDesc(fn($group) => $group->where('status', 'offline')->count())->first()
-            )->first()?->type ?? '-';
+            $substation->online = $statuses->filter(fn($s) => strtolower($s) === 'online')->count();
+            $substation->repairing = $statuses->filter(fn($s) => strtolower($s) === 'repairing')->count();
+            $substation->offline = $statuses->filter(fn($s) => strtolower($s) === 'offline')->count();
+
+            $substation->last_updated = $sensors
+                ->map(fn($s) => $s->updated_at)
+                ->filter()
+                ->sortDesc()
+                ->first();
 
             return $substation;
         });
 
-        return view('substations.summary', ['substations' => $summaryData]);
+        // ✅ Step 3: Pass it to the view
+        return view('substations.summary', [
+            'substations' => $summaryData
+        ]);
     }
 
     // public function mapView($substationId)
@@ -59,7 +71,6 @@ class SubstationController extends Controller
     //         'sensorMarkers' => $sensorMarkers
     //     ]);
     // }
-
 
     /**
      * Show the form for creating a new resource.

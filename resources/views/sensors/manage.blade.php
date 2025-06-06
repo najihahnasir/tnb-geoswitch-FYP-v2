@@ -1,10 +1,20 @@
 @extends('layouts.master')
 
-@section('title', 'Manage Sensors')
-@section('page-title', 'Manage Sensors')
+@section('title', 'Sensor Status Summary')
+@section('page-title', 'Sensor Status Summary')
 
 @section('content')
-<div class="container py-4" style="background-color: #f8f9fa; border-radius: 8px;">
+<div class="container py-1" style="background-color: #f8f9fa; border-radius: 8px;">
+    {{-- Alert for critical sensors --}}
+    @if($offlineCount > 0 || $repairingCount > 0)
+    <div class="alert alert-danger d-flex align-items-center gap-2" role="alert">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div>
+            Attention: {{ $offlineCount }} offline and {{ $repairingCount }} repairing sensors need action.
+        </div>
+    </div>
+    @endif
+
     {{-- Status Summary --}}
     <div class="d-flex flex-wrap gap-3 align-items-center mb-3">
         <h5 class="mb-0 text-dark"><i class="fas fa-signal me-2 text-primary"></i>Sensor Summary:</h5>
@@ -13,13 +23,21 @@
         <span class="badge bg-danger">{{ $offlineCount ?? 0 }} Offline</span>
     </div>
 
-    @if(session('success'))
-        <div class="toast show position-fixed bottom-0 end-0 m-4 bg-success text-white" role="alert">
-            <div class="toast-body">
-                {{ session('success') }}
-            </div>
-        </div>
-    @endif
+    {{-- Status Filter Tabs --}}
+    <ul class="nav nav-pills mb-3">
+        <li class="nav-item">
+            <a class="nav-link {{ request('filter') === null ? 'active' : '' }}" href="{{ route('sensors.index') }}">All</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ request('filter') === 'offline' ? 'active' : '' }}" href="{{ route('sensors.index', ['filter' => 'offline']) }}">Offline</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ request('filter') === 'repairing' ? 'active' : '' }}" href="{{ route('sensors.index', ['filter' => 'repairing']) }}">Repairing</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ request('filter') === 'online' ? 'active' : '' }}" href="{{ route('sensors.index', ['filter' => 'online']) }}">Online</a>
+        </li>
+    </ul>
 
     {{-- Filter Panel Card --}}
     <div class="card mb-4 shadow-sm">
@@ -87,6 +105,9 @@
                         <th>Substation</th>
                         <th>Status</th>
                         <th>Panel</th>
+                        @if(request('filter') === 'offline')
+                        <th>Downtime</th>
+                        @endif
                         <th>Updated At</th>
                         <th>Created At</th>
                         <th>Action</th>
@@ -100,37 +121,33 @@
                         <td>{{ $sensor->type }}</td>
                         <td>{{ optional($sensor->switchgear->substation)->substation_name ?? '-' }}</td>
                         <td>
-                            <span class="badge {{ $sensor->status == 'online' ? 'bg-success' : ($sensor->status == 'repairing' ? 'bg-warning text-dark' : 'bg-danger') }}">
-                                {{ ucfirst($sensor->status) }}
+                            @php $status = strtolower($sensor->status); @endphp
+                            <span class="badge {{ $status == 'online' ? 'bg-success' : ($status == 'repairing' ? 'bg-warning text-dark' : 'bg-danger') }}">
+                                {{ ucfirst($status) }}
                             </span>
                         </td>
                         <td>{{ optional($sensor->switchgear)->panel ?? '-' }}</td>
+                        @if(request('filter') === 'offline')
+                        <td>{{ $sensor->latestLogReport?->downtime_duration ?? '-' }}</td>
+                        @endif
                         <td>{{ $sensor->updated_at->format('Y-m-d H:i') }}</td>
                         <td>{{ $sensor->created_at->format('Y-m-d H:i') }}</td>
                         <td>
                             <div class="d-flex gap-2">
-                                <button class="btn btn-outline-primary btn-sm" onclick="openUpdateModal({{ $sensor->id }})">
-                                    <i class="fas fa-edit me-1"></i> Update
-                                </button>
                                 <a href="{{ route('sensors.show', $sensor->id) }}" class="btn btn-outline-secondary btn-sm">
                                     <i class="fas fa-eye me-1"></i> View
                                 </a>
-                                @if($sensor->logReports->count())
-                                    <p>{{ $sensor->logReports->last()->title }}</p>
-                                @else
-                                    <p>No reports found.</p>
-                                @endif
-
                                 @if($sensor->latestLogReport)
                                     <a href="{{ route('log-reports.editStatus', $sensor->latestLogReport->id) }}" class="btn btn-primary btn-sm">
-                                        Edit Sensor Status
+                                       <i class="bi bi-pencil-square"></i> Edit
                                     </a>
                                 @else
-                                    <span class="text-muted">No report</span>
+                                    <a href="{{ route('log-reports.create') }}" class="btn btn-outline-primary btn-sm">
+                                        Report Issue
+                                    </a>
                                 @endif
                             </div>
                         </td>
-                       
                     </tr>
                     @empty
                     <tr>
@@ -145,69 +162,4 @@
         </div>
     </div>
 </div>
-
-{{-- Modal --}}
-<div class="modal fade" id="updateSensorModal" tabindex="-1" aria-labelledby="updateSensorModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <form method="POST" id="updateSensorForm">
-      @csrf
-      @method('PUT')
-      <div class="modal-content">
-        <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title" id="updateSensorModalLabel">Update Sensor Status</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label">Status</label>
-            <select name="status" class="form-select" required>
-              <option value="online">Online</option>
-              <option value="repairing">Repairing</option>
-              <option value="offline">Offline</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Report By</label>
-            <input type="text" name="reported_by" value="{{ Auth::check() ? Auth::user()->name : 'N/A' }}" class="form-control" readonly>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Report Date</label>
-            <input type="text" name="report_date" value="{{ now()->format('Y-m-d H:i:s') }}" class="form-control" readonly>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Remarks</label>
-            <textarea name="report" rows="3" class="form-control" placeholder="Enter remarks or findings..."></textarea>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Update Status</button>
-        </div>
-      </div>
-    </form>
-  </div>
-</div>
-
-@push('after-scripts')
-<script>
-    function openUpdateModal(sensorId) {
-        const form = document.getElementById('updateSensorForm');
-        form.action = `/sensors/${sensorId}`;
-        const modal = new bootstrap.Modal(document.getElementById('updateSensorModal'));
-        modal.show();
-    }
-
-    // Sortable DataTable
-    document.addEventListener('DOMContentLoaded', function () {
-        if (window.jQuery && $.fn.DataTable) {
-            $('#sensorTable').DataTable({
-                paging: false,
-                info: false,
-                searching: false,
-                order: []
-            });
-        }
-    });
-</script>
-@endpush
 @endsection

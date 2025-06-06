@@ -26,6 +26,34 @@
         </div>
     </div>
 
+     <!-- Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-start border-4 border-success h-100">
+                <div class="card-body text-center" style="height: 40px">
+                    <h2 class="fw-bold text-dark">{{ $onlineCount ?? 0 }}</h2>
+                    <p class="mb-0 text-muted">Online Sensors</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-start border-4 border-warning h-100">
+                <div class="card-body text-center">
+                    <h2 class="fw-bold text-dark">{{ $repairingCount ?? 0 }}</h2>
+                    <p class="mb-0 text-muted">Repairing Sensors</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-start border-4 border-danger h-100">
+                <div class="card-body text-center">
+                    <h2 class="fw-bold text-dark">{{ $offlineCount ?? 0 }}</h2>
+                    <p class="mb-0 text-muted">Offline Sensors</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Filter Controls -->
     <form id="filterForm" method="GET" action="{{ route('analytics.substations') }}" class="row g-3 mb-4 align-items-end">
         <div class="col-md-3">
@@ -86,35 +114,6 @@
         </div>
     </form>
 
-
-    <!-- Summary Cards -->
-    {{-- <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card text-white bg-success">
-                <div class="card-body">
-                    <h6 class="card-title">Online</h6>
-                    <h4>{{ $statusCounts['online'] ?? 0 }}</h4>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-dark bg-warning">
-                <div class="card-body">
-                    <h6 class="card-title">Repairing</h6>
-                    <h4>{{ $statusCounts['repairing'] ?? 0 }}</h4>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-danger">
-                <div class="card-body">
-                    <h6 class="card-title">Offline</h6>
-                    <h4>{{ $statusCounts['offline'] ?? 0 }}</h4>
-                </div>
-            </div>
-        </div>
-    </div> --}}
-
     <!-- Chart Section -->
     <div class="row g-4">
         <div class="col-md-6">
@@ -135,19 +134,10 @@
             </div>
         </div>
 
-        {{-- <div class="col-md-4">
-            <div class="card shadow-sm p-3">
-                <h6 class="card-title">📶 Sensor Status Distribution</h6>
-                <div class="chart-container">
-                    <canvas id="statusChart"></canvas>
-                </div>
-            </div>
-        </div> --}}
-
         <div class="col-md-12">
             <div class="card shadow-sm p-3">
                 <h6 class="card-title">🚨 Top Problematic Sensors</h6>
-                <small class="text-muted">Showing top 5 offline sensors from Jan to May 2025</small>
+                <small class="text-muted">Showing top 5 offline sensors from Jan to Dec {{ now()->year }}</small>
                 <div class="chart-container" style="width: 100%;">
                     <canvas id="topProblemChart"></canvas>
                 </div>
@@ -157,77 +147,10 @@
 </div>
 @endsection
 
-
 @push('after-scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const form = document.getElementById('filterForm');
-
-        // Auto-submit on any select or input change
-        form.querySelectorAll('select, input').forEach(element => {
-            element.addEventListener('change', () => form.submit());
-        });
-    });
-</script>
-
-<script>
-    const statusData = @json($statusData);
     const sensorData = @json($sensorTypeChartData);
-    // const uptimeData = @json($uptimeTrend);
-    const topProblemData = @json($topProblematicSensors);
-
-    // 📌 Status Donut
-    new Chart(document.getElementById('statusChart'), {
-        type: 'doughnut',
-        data: {
-            labels: statusData.map(s => s.status),
-            datasets: [{
-                data: statusData.map(s => s.count),
-                backgroundColor: ['#198754', '#ffc107', '#dc3545']
-            }]
-        },
-        options: {
-            plugins: {
-                legend: { position: 'bottom' },
-                title: { display: false }
-            }
-        }
-    });
-
-    // 📊 Stacked Bar
-    new Chart(document.getElementById('sensorTypeStackedChart'), {
-        type: 'bar',
-        data: sensorData,
-        options: {
-            responsive: true,
-            plugins: {
-                title: { display: false },
-                legend: { position: 'bottom' }
-            },
-            scales: {
-                x: { stacked: true },
-                y: { stacked: true, beginAtZero: true }
-            }
-        }
-    });
-
-    // 📈 Uptime Line Chart
-    // new Chart(document.getElementById('uptimeTrendChart'), {
-    //     type: 'line',
-    //     data: uptimeData,
-    //     options: {
-    //         responsive: true,
-    //         plugins: {
-    //             legend: { position: 'bottom' },
-    //             title: { display: false }
-    //         },
-    //         scales: {
-    //             y: { min: 0, max: 100, title: { display: true, text: 'Uptime %' } }
-    //         }
-    //     }
-    // });
-
     const uptimeData = {
         labels: @json($uptimeTrend['labels']),
         datasets: [{
@@ -238,6 +161,22 @@
             tension: 0.3
         }]
     };
+    const topProblemData = @json($topProblematicSensors);
+
+    new Chart(document.getElementById('sensorTypeStackedChart'), {
+        type: 'bar',
+        data: sensorData,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            },
+            scales: {
+                x: { stacked: true },
+                y: { stacked: true, beginAtZero: true }
+            }
+        }
+    });
 
     new Chart(document.getElementById('uptimeTrendChart'), {
         type: 'line',
@@ -255,41 +194,14 @@
         }
     });
 
-    // 🚨 Top Problematic Sensors
-    // new Chart(document.getElementById('topProblemChart'), {
-    //     type: 'bar',
-    //     data: topProblemData,
-    //     options: {
-    //         indexAxis: 'y',
-    //         plugins: {
-    //             legend: { display: false },
-    //             title: { display: false }
-    //         },
-    //         scales: {
-    //             x: { beginAtZero: true, title: { display: true, text: 'Offline Count' } }
-    //         }
-    //     }
-    // });
-
     new Chart(document.getElementById('topProblemChart'), {
         type: 'bar',
         data: {
             labels: topProblemData.labels,
             datasets: [{
                 label: 'Offline Count',
-                data: topProblemData.labels.map((label, i) => ({
-                    x: topProblemData.datasets[0].data[i],   // offline count
-                    y: label,                                // sensor label
-                    tag: label.split(' ')[0],                // sensor tag
-                    substation: label.split('(')[1]?.replace(')', '') ?? 'Unknown',
-                    type: topProblemData.datasets[0].types?.[i] ?? 'Unknown',
-                    count: topProblemData.datasets[0].data[i]
-                })),
+                data: topProblemData.datasets[0].data,
                 backgroundColor: '#e74c3c',
-                parsing: {
-                    xAxisKey: 'x',
-                    yAxisKey: 'y'
-                },
                 barThickness: 20
             }]
         },
@@ -297,20 +209,7 @@
             indexAxis: 'y',
             plugins: {
                 legend: { display: false },
-                title: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => {
-                            const d = ctx.raw;
-                            return [
-                                `Tag: ${d.tag}`,
-                                `Substation: ${d.substation}`,
-                                `Type: ${d.type}`,
-                                `Offline Count: ${d.count}`
-                            ];
-                        }
-                    }
-                }
+                title: { display: false }
             },
             scales: {
                 x: {

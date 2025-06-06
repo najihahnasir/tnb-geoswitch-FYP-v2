@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\SensorService;
 use App\Models\Sensor;
+use App\Models\Substation;
 use App\Models\SensorStatusHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -159,9 +160,10 @@ class SensorController extends Controller
      */
     public function create()
     {
-        $substations = \App\Models\Substation::all();
+        $substations = Substation::with('switchgears')->get(); // no need for sensors
         return view('sensors.create', compact('substations'));
     }
+
 
     /**
      * Store a newly created resource in storage.

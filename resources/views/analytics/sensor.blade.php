@@ -29,7 +29,7 @@
     </div>
 
     <!-- Summary Cards -->
-    <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
+    {{-- <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
         <div class="col">
             <div class="card text-center shadow-sm p-3">
                 <h6 class="card-title">Total Sensors</h6>
@@ -48,7 +48,46 @@
                 <h3 class="text-danger">{{ $offlineSensors }}</h3>
             </div>
         </div>
+    </div> --}}
+{{-- @php
+    dump([
+        'onlineSensors' => $onlineSensors ?? 'NOT SET',
+        'repairingSensors' => $repairingSensors ?? 'NOT SET',
+        'offlineSensors' => $offlineSensors ?? 'NOT SET',
+    ]);
+@endphp
+
+@include('partial-dashboard.popup-sensor') --}}
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-start border-4 border-success h-100">
+                <div class="card-body text-center" style="height: 40px">
+                    <h2 class="fw-bold text-dark">{{ $onlineCount ?? 0 }}</h2>
+                    <p class="mb-0 text-muted">Online Sensors</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-start border-4 border-warning h-100">
+                <div class="card-body text-center">
+                    <h2 class="fw-bold text-dark">{{ $repairingCount ?? 0 }}</h2>
+                    <p class="mb-0 text-muted">Repairing Sensors</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-start border-4 border-danger h-100">
+                <div class="card-body text-center">
+                    <h2 class="fw-bold text-dark">{{ $offlineCount ?? 0 }}</h2>
+                    <p class="mb-0 text-muted">Offline Sensors</p>
+                </div>
+            </div>
+        </div>
     </div>
+
+
+
+
 
     <!-- Filter Form -->
     <form id="filterForm" method="GET" class="row g-3 mb-4 align-items-end">
@@ -729,7 +768,7 @@
                             const from = new Date(d.start).toLocaleString();
                             const to = new Date(d.end).toLocaleString();
                             return [
-                                `🟢 Status: ${d.status}`,
+                                ` Status: ${d.status}`,
                                 `📅 From: ${from}`,
                                 `📅 To: ${to}`,
                                 `⏱️ Duration: ${d.duration.toFixed(1)} hrs`

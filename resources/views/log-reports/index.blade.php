@@ -5,65 +5,144 @@
 @section('content')
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4>Sensor Log Reports</h4>
-        <a href="{{ route('log-reports.create') }}" class="btn btn-primary">New Report</a>
+        <h4 class="text-primary mb-0"><i class="fas fa-history me-2"></i>Sensor Log Reports</h4>
+        <a href="{{ route('log-reports.create') }}" class="btn btn-outline-primary">
+            <i class="fas fa-plus-circle me-1"></i> New Report
+        </a>
     </div>
 
     @if(session('success'))
-        <div class="alert alert-success mb-3">{{ session('success') }}</div>
+        <div class="alert alert-success mb-3">
+            <i class="fas fa-check-circle me-1"></i>{{ session('success') }}
+        </div>
     @endif
 
-    <table class="table table-bordered table-striped">
-        <thead class="table-light">
-            <tr>
-                <th>Case ID</th>
-                <th>Substation</th>
-                <th>Switchgear</th>
-                <th>Sensor</th>
-                <th>Reported By</th>
-                <th>Title</th>
-                <th>Description</th>
-                <th>Status</th>
-                <th>Reported At</th>
-                <th>Resolved At</th>
-                <th>Duration</th>
-                <th>Remarks</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($reports as $report)
-                <tr>
-                    <td>#{{ $report->id }}</td>
-                    <td>{{ optional($report->substation)->substation_name ?? '-' }}</td>
-                    <td>{{ optional($report->switchgear)->panel ?? '-' }}</td>
-                    <td>
-                        {{ optional($report->sensor)->tag ?? '-' }} 
-                        ({{ optional($report->sensor)->type ?? '-' }})
-                    </td>
-                    <td>{{ optional($report->reporter)->name ?? '-' }}</td>
-                    <td>{{ $report->title ?? '-' }}</td>
-                    <td>{{ $report->description ?? '-' }}</td>
-                    <td>
-                        <span class="badge bg-{{ $report->status === 'open' ? 'danger' : 'success' }}">
-                            {{ ucfirst($report->status) }}
-                        </span>
-                    </td>
-                    <td>{{ $report->reported_at ? $report->reported_at->format('Y-m-d H:i') : '-' }}</td>
-                    <td>{{ $report->resolved_at ? $report->resolved_at->format('Y-m-d H:i') : '-' }}</td>
-                    <td>{{ $report->duration ?? '-' }}</td>
-                    <td>{{ $report->remarks ?? '-' }}</td>
-                    <td>
-                        <a href="{{ route('log-reports.show', $report) }}" class="btn btn-sm btn-info">View</a>
-                    </td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="13" class="text-center text-muted">No sensor log reports found.</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
+    {{-- Filter Panel --}}
+    <div class="card mb-4">
+        <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-filter me-2"></i>Filter Logs</span>
+            <button class="btn btn-sm btn-light border" data-bs-toggle="collapse" data-bs-target="#filterPanel">
+                <i class="fas fa-chevron-down"></i>
+            </button>
+        </div>
+        <div id="filterPanel" class="collapse show">
+            <div class="card-body">
+                <form method="GET" action="{{ route('log-reports.index') }}" class="row g-3">
+                    {{-- <div class="col-md-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select name="status" id="status" class="form-select">
+                            <option value="">All Statuses</option>
+                            <option value="open" {{ request('status') == 'open' ? 'selected' : '' }}>Open</option>
+                            <option value="closed" {{ request('status') == 'closed' ? 'selected' : '' }}>Closed</option>
+                        </select>
+                    </div> --}}
+                    <div class="col-md-3">
+                        <label for="status" class="form-label">Case Status</label>
+                        <select name="status" id="status" class="form-select">
+                            <option value="">All Cases</option>
+                            <option value="open" {{ request('status') == 'open' ? 'selected' : '' }}>Open</option>
+                            <option value="closed" {{ request('status') == 'closed' ? 'selected' : '' }}>Closed</option>
+                        </select>
+                    </div>
 
+                    <div class="col-md-3">
+                        <label for="new_status" class="form-label">Sensor Status</label>
+                        <select name="new_status" id="new_status" class="form-select">
+                            <option value="">All Statuses</option>
+                            <option value="online" {{ request('new_status') == 'online' ? 'selected' : '' }}>Online</option>
+                            <option value="repairing" {{ request('new_status') == 'repairing' ? 'selected' : '' }}>Repairing</option>
+                            <option value="offline" {{ request('new_status') == 'offline' ? 'selected' : '' }}>Offline</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="substation" class="form-label">Substation</label>
+                        <select name="substation" id="substation" class="form-select">
+                            <option value="">All Substations</option>
+                            @foreach($substations as $sub)
+                                <option value="{{ $sub->id }}" {{ request('substation') == $sub->id ? 'selected' : '' }}>{{ $sub->substation_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    {{-- <div class="col-md-3">
+                        <label for="month" class="form-label">Month</label>
+                        <input type="month" class="form-control" name="month" id="month" value="{{ request('month') }}">
+                    </div> --}}
+                    <div class="col-md-3 d-flex align-items-end gap-2">
+                        <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search me-1"></i> Filter</button>
+                        <a href="{{ route('log-reports.index') }}" class="btn btn-outline-secondary">Reset</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead class="table-light">
+                    <tr>
+                        <th>#Case ID</th>
+                        <th>Substation</th>
+                        <th>Switchgear</th>
+                        <th>Sensor</th>
+                        <th>Reported By</th>
+                        {{-- <th>Title</th> --}}
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Reported At</th>
+                        <th>Resolved At</th>
+                        <th>Downtime</th>
+                        {{-- <th>Remarks</th> --}}
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($reports as $report)
+                        <tr>
+                            <td class="fw-semibold">#{{ $report->case_id ?? '-' }}</td>
+                            <td>{{ optional($report->substation)->substation_name ?? '-' }}</td>
+                            <td>{{ optional($report->switchgear)->display_name ?? optional($report->switchgear)->panel ?? '-' }}</td>
+                            <td>
+                                <span class="fw-semibold">{{ optional($report->sensor)->tag ?? '-' }}</span><br>
+                                <small class="text-muted">({{ optional($report->sensor)->type ?? '-' }})</small>
+                            </td>
+                            <td>{{ optional($report->reporter)->name ?? '-' }}</td>
+                            {{-- <td>{{ $report->title ?? '-' }}</td> --}}
+                            <td>{{ Str::limit($report->description, 50) ?? '-' }}</td>
+                            <td>
+                                <span class="badge bg-{{ $report->status === 'open' ? 'danger' : 'success' }}">
+                                    {{ ucfirst($report->status) }}
+                                </span>
+                            </td>
+                            <td>{{ $report->reported_at ? $report->reported_at->format('Y-m-d H:i') : '-' }}</td>
+                            <td>{{ $report->resolved_at ? $report->resolved_at->format('Y-m-d H:i') : '-' }}</td>
+                            <td>
+                                @if(Str::startsWith($report->calculated_duration, 'LIVE'))
+                                    <span class="text-danger fw-bold">{{ $report->calculated_duration }}</span>
+                                @else
+                                    {{ $report->calculated_duration }}
+                                @endif
+                            </td>
+
+                            {{-- <td>{{ $report->remarks ?? '-' }}</td> --}}
+                            <td>
+                                <a href="{{ route('log-reports.show', $report) }}" class="btn btn-sm btn-outline-info">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="13" class="text-center text-muted">No sensor log reports found.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer bg-white border-top-0 d-flex justify-content-center">
+            {{ $reports->withQueryString()->links('pagination::bootstrap-5') }}
+        </div>
+    </div>
 </div>
 @endsection

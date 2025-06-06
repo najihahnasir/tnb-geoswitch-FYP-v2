@@ -32,8 +32,14 @@
             </div>
 
             {{-- Switchgear dropdown (dependent) --}}
+            {{-- <select id="substation_id" class="form-select" required>
+                <option value="">-- Select Substation --</option>
+                @foreach($substations as $sub)
+                    <option value="{{ $sub->id }}">{{ $sub->substation_name }}</option>
+                @endforeach
+            </select> --}}
             <div class="mb-3">
-                <label for="switchgear_id" class="form-label">Switchgear</label>
+                <label for="substation_id" class="form-label">Switchgear</label>
                 <select name="switchgear_id" id="switchgear_id" class="form-select" required>
                     <option value="">-- Select Switchgear --</option>
                 </select>
@@ -72,22 +78,20 @@
 
 @push('after-scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const substationSelect = document.getElementById('substation_id');
+    const substations = @json($substations);
+
+    document.getElementById('substation_id').addEventListener('change', function () {
+        const selectedId = this.value;
         const switchgearSelect = document.getElementById('switchgear_id');
 
-        substationSelect.addEventListener('change', function () {
-            const substationId = this.value;
-            switchgearSelect.innerHTML = '<option value="">Loading...</option>';
+        switchgearSelect.innerHTML = '<option value="">-- Select Switchgear --</option>';
 
-            fetch(`/api/switchgears/by-substation/${substationId}`)
-                .then(response => response.json())
-                .then(data => {
-                    switchgearSelect.innerHTML = '<option value="">-- Select Switchgear --</option>';
-                    data.forEach(sg => {
-                        switchgearSelect.innerHTML += `<option value="${sg.id}">${sg.panel}</option>`;
-                    });
-                });
+        const substation = substations.find(s => s.id == selectedId);
+        if (!substation || !substation.switchgears) return;
+
+        substation.switchgears.forEach(sw => {
+            const label = sw.display_name ?? `${sw.name} - ${sw.compartment}`;
+            switchgearSelect.innerHTML += `<option value="${sw.id}">${label}</option>`;
         });
     });
 </script>

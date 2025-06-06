@@ -206,11 +206,23 @@ TEMPORARY BUTTON FOR TESTING
             </div> --}}
         </div>
     </div>
+
+    {{-- <pre>{{ json_encode($overviewData, JSON_PRETTY_PRINT) }}</pre> --}}
+
     @include('partial-dashboard.chart')
 
     @include('partial-dashboard.map')
 
-    @include('partial-dashboard.popup-sensor')
+    {{-- @include('partial-dashboard.popup-sensor') --}}
+    {{-- @include('partial-dashboard.popup-sensor', ['substation' => $substation]) --}}
+    @foreach($substations as $substation)
+        @include('partial-dashboard.popup-sensor', ['substation' => $substation])
+    @endforeach
+
+    {{-- @include('partial-dashboard.popup-sensor', ['substation' => $substation]) --}}
+
+
+
    
 
     <div id="sensor-summary-panel">
@@ -242,6 +254,10 @@ TEMPORARY BUTTON FOR TESTING
     </div> --}}
 
     {{-- Offline Sensor Alert Modal --}}
+    {{-- DEBUG --}}
+{{-- <p>Offline Count: {{ $offlineCount }}</p>
+<pre>{{ print_r($offlineSummary, true) }}</pre> --}}
+
     <div class="modal fade" id="offlineSensorModal" tabindex="-1" aria-labelledby="offlineSensorModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow">
@@ -320,7 +336,7 @@ TEMPORARY BUTTON FOR TESTING
 <!-- Include Chart.js for Analytics -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<script>
+{{-- <script>
     document.addEventListener('DOMContentLoaded', function () {
         const offlineCount = {{ $offlineCount }};
         if (offlineCount > 0 && !sessionStorage.getItem('sensorAlertDismissed')) {
@@ -331,7 +347,21 @@ TEMPORARY BUTTON FOR TESTING
                 .addEventListener('hidden.bs.modal', () => sessionStorage.setItem('sensorAlertDismissed', true));
         }
     });
+</script> --}}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const offlineCount = {{ $offlineCount ?? 0 }};
+        if (offlineCount > 0 && !sessionStorage.getItem('sensorAlertDismissed')) {
+            const modal = new bootstrap.Modal(document.getElementById('offlineSensorModal'));
+            modal.show();
+
+            document.getElementById('offlineSensorModal')
+                .addEventListener('hidden.bs.modal', () => sessionStorage.setItem('sensorAlertDismissed', true));
+        }
+    });
 </script>
+
 
 {{-- 
 <script>

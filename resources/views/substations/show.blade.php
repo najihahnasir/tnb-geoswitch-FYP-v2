@@ -33,12 +33,12 @@
 @endpush
 
 @section('content')
-<div class="container py-4">
+<div class="container py-1">
 
     {{-- Substation Info Card --}}
     <div class="card shadow-sm mb-4 mt-0">
         <div class="card-body">
-            <h4 class="card-title text-primary"><i class=" me-2 text-warning"></i>{{ $substation->substation_name }}</h4>
+            <h6 class="card-title text-primary"><i class=" me-2 text-warning"></i>{{ $substation->substation_name }}</h6>
             <p><i class="fas fa-map-marker-alt me-1 text-danger"></i> <strong>Location:</strong> {{ $substation->latitude }}, {{ $substation->longitude }}</p>
             <p><i class="fas fa-plug me-1 text-success"></i> <strong>Total Switchgears:</strong> {{ $substation->switchgears->count() }}</p>
             <p>
@@ -51,20 +51,32 @@
 
 
     {{-- Switchgear & Sensor Summary --}}
-    <div class="card">
-        <div class="card-header bg-light">
-            <h5 class="mb-0">Switchgear & Sensor Summary</h5>
-        </div>
-        <div class="card-body">
+{{-- Switchgear & Sensor Summary --}}
+<div class="card mb-4">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">🔌 Switchgear & Sensor Summary</h5>
+    </div>
+    <div class="card-body p-0">
+        <div style="max-height: 400px; overflow-y: auto;" class="p-3">
             <ul class="list-group list-group-flush">
                 @foreach($substation->switchgears as $switchgear)
+                    @php
+                        $onlineCount = $switchgear->sensors->where('status', 'online')->count();
+                        $repairingCount = $switchgear->sensors->where('status', 'repairing')->count();
+                        $offlineCount = $switchgear->sensors->where('status', 'offline')->count();
+                    @endphp
                     <li class="list-group-item">
                         <strong>{{ $switchgear->panel }}</strong>
                         <span class="badge bg-secondary ms-2">{{ $switchgear->sensors->count() }} sensors</span>
+                        {{-- <span class="ms-2 small">
+                            <span class="badge bg-success">🟢 {{ $onlineCount }}</span>
+                            <span class="badge bg-warning text-dark">🟠 {{ $repairingCount }}</span>
+                            <span class="badge bg-danger">🔴 {{ $offlineCount }}</span>
+                        </span> --}}
                         <ul class="ms-3 text-muted small mt-2">
                             @foreach($switchgear->sensors as $sensor)
                                 <li>
-                                    <i class="fas fa-circle me-1" style="color: {{ $sensor->status == 'online' ? '#2ecc71' : ($sensor->status == 'repairing' ? '#f39c12' : '#e74c3c') }}"></i>
+                                    {{-- <i class="fas fa-circle me-1" style="color: {{ $sensor->status == 'online' ? '#2ecc71' : ($sensor->status == 'repairing' ? '#f39c12' : '#e74c3c') }}"></i> --}}
                                     {{ $sensor->tag }} – {{ $sensor->type }} – 
                                     <span class="text-capitalize">{{ $sensor->status }}</span>
                                 </li>
@@ -75,6 +87,9 @@
             </ul>
         </div>
     </div>
+</div>
+
+
 
     {{-- Sensor Map --}}
     <div id="map" class="mb-4"></div>

@@ -102,6 +102,8 @@ Auth::routes();
 Route::middleware(['auth'])->group(function () {
     // Dashboard route
     Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
+    // Route::get('/dashboard', [DashboardController::class, 'index']);
+
 
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');

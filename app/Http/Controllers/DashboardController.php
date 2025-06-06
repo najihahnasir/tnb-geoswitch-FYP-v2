@@ -47,9 +47,9 @@ class DashboardController extends Controller
         foreach ($groupedBySubstation as $substationName => $sensorGroup) {
             $overviewData[] = [
                 'label' => $substationName,
-                'online' => $sensorGroup->where('status', 'online')->count(),
-                'repairing' => $sensorGroup->where('status', 'repairing')->count(),
-                'offline' => $sensorGroup->where('status', 'offline')->count(),
+                'online' => $sensorGroup->filter(fn($s) => strtolower($s->status) === 'online')->count(),
+                'repairing' => $sensorGroup->filter(fn($s) => strtolower($s->status) === 'repairing')->count(),
+                'offline' => $sensorGroup->filter(fn($s) => strtolower($s->status) === 'offline')->count(),
             ];
         }
 
@@ -108,6 +108,7 @@ class DashboardController extends Controller
                 'longitude' => 101.6918621,
             ],
         ];
+        
         return view ('dashboard', compact('substations'));
     }
 

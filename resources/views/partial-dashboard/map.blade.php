@@ -560,14 +560,26 @@
                 const sensorCount = sensorsAtSub.length;
 
                 // Map sensor type to its status
-                const sensorDetails = sensorsAtSub.map(s => {
-                    const type = s.type || 'Unknown';
-                    const status = s.status?.toLowerCase() || 'unknown';
-                    const color = status === 'online' ? '#2ecc71' :
-                                status === 'repairing' ? '#f39c12' :
-                                status === 'offline' ? '#e74c3c' : '#ccc';
-                    return `<li>${type}: <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};margin:0 6px 0 4px;"></span>${status}</li>`;
+                // const sensorDetails = sensorsAtSub.map(s => {
+                //     const type = s.type || 'Unknown';
+                //     const status = s.status?.toLowerCase() || 'unknown';
+                //     const color = status === 'online' ? '#2ecc71' :
+                //                 status === 'repairing' ? '#f39c12' :
+                //                 status === 'offline' ? '#e74c3c' : '#ccc';
+                //     return `<li>${type}: <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};margin:0 6px 0 4px;"></span>${status}</li>`;
+                // }).join('');
+                const grouped = {};
+                sensorsAtSub.forEach(s => {
+                const key = `${s.type || 'Unknown'}-${s.status || 'unknown'}-${s.panel || 'Unknown Panel'}`;
+                    grouped[key] = (grouped[key] || 0) + 1;
+                });
+
+                const sensorDetails = Object.entries(grouped).map(([key, count]) => {
+                    const [type, status] = key.split('-');
+                    const color = getStatusColor(status);
+                    return `<li>${type} — ${count} <span style="background:${color};width:10px;height:10px;border-radius:50%;display:inline-block;margin-left:6px;"></span> ${status}</li>`;
                 }).join('');
+
 
                 // const popupContent = `
                 //     <b>${sub.substation_name}</b><br>

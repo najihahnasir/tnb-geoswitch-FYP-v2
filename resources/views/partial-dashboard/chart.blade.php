@@ -1,18 +1,3 @@
-{{-- <div class="row align-items-start">
-    <div class="col-md-8">
-        <div class="chart-card">
-            <div class="chart-title">Substation Sensor Overview</div>
-            <canvas id="substationChart" width="100%" height="240"></canvas>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="chart-box">
-            <canvas id="severityChart" width="100%" height="100"></canvas>
-        </div>
-    </div>
-</div> --}}
-
 @push('after-styles')
 <style>
     #substationChart, 
@@ -71,8 +56,8 @@
     </div>
 </div>
 
-@push('after-scripts')
-{{-- Chart.js --}}
+{{-- @push('after-scripts')
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     const ctx = document.getElementById('severityChart').getContext('2d');
@@ -145,6 +130,7 @@
     const DEFAULT_FILTER_MODE = 'top5'; 
 
     function getFilteredData(mode) {
+
         let data = [...overviewData];
 
         if (mode === 'offline') {
@@ -166,7 +152,11 @@
     }
 
     function renderSubstationChart(mode = DEFAULT_FILTER_MODE) {  // Set default here
-        const { labels, online, repairing, offline } = getFilteredData(mode);
+        const { labels, online, repairing, offline } = getFilteredData(mode);  // ✅ defines labels
+        console.log('LABELS:', labels);
+        console.log('ONLINE:', online);
+        console.log('REPAIRING:', repairing);
+        console.log('OFFLINE:', offline);
 
         if (substationChart) substationChart.destroy();
 
@@ -230,4 +220,172 @@
 
 
 </script>
+@endpush --}}
+
+@push('after-scripts')
+{{-- Chart.js --}}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('severityChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['Online', 'Repairing', 'Offline'],
+            datasets: [{
+                data: [
+                    {{ $severityStats['online'] }},
+                    {{ $severityStats['repairing'] }},
+                    {{ $severityStats['offline'] }}
+                ],
+                backgroundColor: ['#28a745', '#ffc107', '#dc3545'],
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        boxWidth: 15,
+                        padding: 15,
+                        font: {
+                            size: 12
+                        },
+                        generateLabels: function(chart) {
+                            const data = chart.data;
+                            const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
+                            return data.labels.map((label, i) => {
+                                const value = data.datasets[0].data[i];
+                                const percentage = ((value / total) * 100).toFixed(1) + '%';
+                                return {
+                                    text: `${label}   ${percentage}`,
+                                    fillStyle: data.datasets[0].backgroundColor[i],
+                                    hidden: false,
+                                    index: i
+                                };
+                            });
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            },
+            animation: {
+                animateScale: true,
+                animateRotate: true
+            }
+        }
+    });
+
+    const overviewData = @json($overviewData);
+    let substationChart;
+
+    const DEFAULT_FILTER_MODE = 'all';
+
+    function getFilteredData(mode) {
+        let data = [...overviewData];
+
+        if (mode === 'offline') {
+            data = data.filter(item => item.offline > 0);
+        } else if (mode === 'top5') {
+            data = data.filter(item => item.offline > 0)
+                       .sort((a, b) => b.offline - a.offline)
+                       .slice(0, 5);
+        } else {
+            data = data.sort((a, b) => b.offline - a.offline);
+        }
+
+        // 🛡️ fallback if no data found
+        if (data.length === 0) {
+            return {
+                labels: ['No Data'],
+                online: [0],
+                repairing: [0],
+                offline: [0]
+            };
+        }
+
+        return {
+            labels: data.map(d => d.label),
+            online: data.map(d => d.online),
+            repairing: data.map(d => d.repairing),
+            offline: data.map(d => d.offline)
+        };
+    }
+
+    function renderSubstationChart(mode = DEFAULT_FILTER_MODE) {
+        const { labels, online, repairing, offline } = getFilteredData(mode);
+
+        if (substationChart) substationChart.destroy();
+
+        const substationCtx = document.getElementById('substationChart').getContext('2d');
+        substationChart = new Chart(substationCtx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Online',
+                        data: online,
+                        backgroundColor: '#4CAF50',
+                        barThickness: 12,
+                        maxBarThickness: 12,
+                    },
+                    {
+                        label: 'Repairing',
+                        data: repairing,
+                        backgroundColor: '#FFC107',
+                        barThickness: 12,
+                        maxBarThickness: 12,
+                    },
+                    {
+                        label: 'Offline',
+                        data: offline,
+                        backgroundColor: '#F44336',
+                        barThickness: 12,
+                        maxBarThickness: 12,
+                    }
+                ]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        stacked: true,
+                        beginAtZero: true,
+                        grid: { display: false }
+                    },
+                    y: {
+                        stacked: true,
+                        grid: { display: false },
+                        ticks: { autoSkip: false }
+                    }
+                },
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    }
+
+    document.getElementById('filterMode').addEventListener('change', function () {
+        renderSubstationChart(this.value);
+    });
+
+    // Initial render
+    renderSubstationChart();
+</script>
 @endpush
+

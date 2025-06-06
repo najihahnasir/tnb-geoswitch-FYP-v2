@@ -1,11 +1,11 @@
 @extends('layouts.master')
 @section('title', 'Report Log Sensor')
-@section('page-title', 'Register Sensor')
+@section('page-title', 'Create Sensor Log Report')
 
 @section('content')
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4>Create Sensor Log Report</h4>
+        {{-- <h4>Create Sensor Log Report</h4> --}}
         <a href="{{ route('log-reports.index') }}" class="btn btn-secondary">Back to Reports</a>
     </div>
 

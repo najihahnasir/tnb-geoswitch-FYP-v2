@@ -50,7 +50,7 @@
         </div>
         <div class="card-body table-responsive">
             <table class="table table-hover table-striped align-middle" id="substationTable">
-                <thead class="table-dark">
+                <thead class="table-light">
                     <tr>
                         <th>#</th>
                         <th>Substation Name</th>
@@ -78,7 +78,7 @@
                         <td>
                             {{-- <a href="{{ route('dashboard.substation-map', ['id' => $substation['id']]) }}" class="btn btn-sm btn-outline-primary">Map</a> --}}
                         
-                            <a href="{{ route('substation.show', $substation['id']) }}" class="btn btn-sm btn-primary">
+                            <a href="{{ route('substation.show', $substation->id) }}" class="btn btn-sm btn-primary">
                                 <i class="fas fa-eye me-1"></i> View
                             </a>
                         </td>

@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use App\Models\Sensor;
-use App\Models\SensorStatusHistory;
 use App\Models\Substation;
+use App\Models\SensorLogReport;
 use Illuminate\Support\Facades\DB;
 use DateTime;
 
@@ -24,34 +24,48 @@ class AnalyticsController extends Controller
 
         $substations = Substation::all();
         $substationNames = $substations->pluck('substation_name')->toArray();
+        $sensorTypes = Sensor::distinct()->pluck('type')->filter()->values();
 
-        $filteredSensors = Sensor::with('switchgear.substation')
-            ->when($substationId, fn($q) => $q->whereHas('switchgear', fn($q2) => $q2->where('substation_id', $substationId)))
-            ->when($sensorType, fn($q) => $q->where('type', $sensorType))
-            ->when($statusFilter, fn($q) => $q->where('status', $statusFilter))
-            ->get();
-
-        $totalSensors = $filteredSensors->count();
-        $statusCounts = [
-            'online' => $filteredSensors->where('status', 'online')->count(),
-            'repairing' => $filteredSensors->where('status', 'repairing')->count(),
-            'offline' => $filteredSensors->where('status', 'offline')->count(),
-        ];
-
-        $statusData = collect($statusCounts)->map(function ($count, $status) {
-            return ['status' => ucfirst($status), 'count' => $count];
-        })->values();
-
-        $sensorHistories = SensorStatusHistory::with(['sensor.switchgear.substation'])
-            ->whereYear('created_at', $year)
-            ->when($month, fn($q) => $q->whereMonth('created_at', $month))
-            ->when($substationId, fn($q) => $q->whereHas('sensor.switchgear', fn($q2) => $q2->where('substation_id', $substationId)))
+        // Get all sensor log reports for the selected year (and filters)
+        $logReports = SensorLogReport::with(['sensor.switchgear.substation'])
+            ->whereYear('reported_at', $year)
+            ->when($month, fn($q) => $q->whereMonth('reported_at', $month))
+            ->when($substationId, fn($q) => $q->where('substation_id', $substationId))
             ->when($sensorType, fn($q) => $q->whereHas('sensor', fn($q2) => $q2->where('type', $sensorType)))
             ->when($statusFilter, fn($q) => $q->where('new_status', $statusFilter))
             ->get();
 
-        $sensorTypes = Sensor::distinct()->pluck('type')->filter()->values();
+        // 📌 Latest status per sensor
+        // $latestStatuses = $logReports
+        //     ->sortByDesc('reported_at')
+        //     ->unique('sensor_id');
 
+        // $totalSensors = $latestStatuses->count();
+        // $statusCounts = [
+        //     'online' => $latestStatuses->where('new_status', 'online')->count(),
+        //     'repairing' => $latestStatuses->where('new_status', 'repairing')->count(),
+        //     'offline' => $latestStatuses->where('new_status', 'offline')->count(),
+        // ];
+        // 📌 Latest status per sensor (per substation & filters)
+        $latestSensorStatus = Sensor::with(['switchgear.substation'])
+            ->when($substationId, fn($q) => $q->whereHas('switchgear', fn($q2) => $q2->where('substation_id', $substationId)))
+            ->when($sensorType, fn($q) => $q->where('type', $sensorType))
+            ->get();
+
+        // Apply status counts (case-insensitive)
+        $onlineCount = $latestSensorStatus->filter(fn($s) => strtolower($s->status) === 'online')->count();
+        $repairingCount = $latestSensorStatus->filter(fn($s) => strtolower($s->status) === 'repairing')->count();
+        $offlineCount = $latestSensorStatus->filter(fn($s) => strtolower($s->status) === 'offline')->count();
+
+        $totalSensors = $latestSensorStatus->count();
+
+        $statusCounts = [
+            'online' => $onlineCount,
+            'repairing' => $repairingCount,
+            'offline' => $offlineCount,
+        ];
+
+        // 📊 Sensor Count by Type Chart
         $sensorTypeChartData = [
             'labels' => $substationNames,
             'datasets' => []
@@ -65,9 +79,9 @@ class AnalyticsController extends Controller
             ];
 
             foreach ($substations as $sub) {
-                $count = $sensorHistories->filter(fn($h) =>
-                    optional($h->sensor->switchgear->substation)->id === $sub->id &&
-                    ucfirst(trim($h->sensor->type)) === $type
+                $count = $logReports->filter(fn($r) =>
+                    optional($r->sensor->switchgear->substation)->id === $sub->id &&
+                    ucfirst(trim($r->sensor->type)) === $type
                 )->count();
                 $dataset['data'][] = $count;
             }
@@ -75,7 +89,8 @@ class AnalyticsController extends Controller
             $sensorTypeChartData['datasets'][] = $dataset;
         }
 
-        $trendGrouped = $sensorHistories->groupBy(fn($h) => Carbon::parse($h->created_at)->format('M'));
+        // 📈 Uptime % Trend Chart (monthly)
+        $trendGrouped = $logReports->groupBy(fn($r) => Carbon::parse($r->reported_at)->format('M'));
         $uptimeTrend = [
             'labels' => $trendGrouped->keys()->toArray(),
             'data' => $trendGrouped->map(function ($group) {
@@ -85,8 +100,9 @@ class AnalyticsController extends Controller
             })->values()->toArray()
         ];
 
-        $topSensors = $sensorHistories->where('new_status', 'offline')
-            ->groupBy(fn($h) => optional($h->sensor)->tag . ' (' . optional($h->sensor->switchgear->substation)->substation_name . ')')
+        // 🚨 Top Problematic Sensors (offline only)
+        $topSensors = $logReports->where('new_status', 'offline')
+            ->groupBy(fn($r) => optional($r->sensor)->tag . ' (' . optional($r->sensor->switchgear->substation)->substation_name . ')')
             ->map(fn($group) => $group->count())
             ->sortDesc()
             ->take(5);
@@ -100,8 +116,22 @@ class AnalyticsController extends Controller
             ]]
         ];
 
+        $statusCounts = [
+        'online' => $onlineCount,
+        'repairing' => $repairingCount,
+        'offline' => $offlineCount,
+    ];
+
+    $statusData = collect($statusCounts)->map(function ($count, $status) {
+        return [
+            'status' => ucfirst($status),
+            'count' => $count
+        ];
+    })->values();
+
+
         return view('analytics.substations', compact(
-            'sensorHistories',
+            'logReports',
             'substationNames',
             'statusData',
             'statusCounts',
@@ -113,7 +143,12 @@ class AnalyticsController extends Controller
             'uptimeTrend',
             'topProblematicSensors',
             'sensorTypeChartData',
-            'sensorTypes'
+            'sensorTypes',
+            'onlineCount',
+            'repairingCount',
+            'offlineCount',
         ));
     }
+
+
 }

@@ -13,24 +13,70 @@ use Illuminate\Http\Request;
 
 class LogReportController extends Controller
 {
-    public function index()
-    {
-        $reports = SensorLogReport::with(['substation', 'switchgear', 'sensor', 'reporter','statusChanger'])
-            ->latest('reported_at')
-            ->get();
+    public function index(Request $request)
+{
+    $query = SensorLogReport::with([
+        'substation',
+        'switchgear',
+        'sensor',
+        'reporter',
+        'statusChanger'
+    ]);
 
-        // Calculate fallback duration
-        foreach ($reports as $report) {
-            if (!$report->downtime_duration && $report->reported_at && $report->resolved_at) {
-                $diff = $report->reported_at->diff($report->resolved_at);
-                $report->calculated_duration = $diff->days . 'd ' . $diff->h . 'h ' . $diff->i . 'm';
-            } else {
-                $report->calculated_duration = $report->downtime_duration; // use DB value if exists
-            }
-        }
-
-        return view('log-reports.index', compact('reports'));
+    // ✅ Filter by Substation (optional)
+    if ($request->filled('substation')) {
+        $query->where('substation_id', $request->substation);
     }
+
+    // ✅ Filter by Case Status (open/closed)
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+
+    // ✅ Filter by Sensor Status (online/repairing/offline)
+    if ($request->filled('new_status')) {
+        $query->where('new_status', $request->new_status);
+    }
+
+    // ✅ Filter by Month
+    if ($request->filled('month')) {
+        $query->whereMonth('reported_at', $request->month);
+    }
+
+    // ✅ Paginate and sort
+    $reports = $query->latest('reported_at')->paginate(10);
+
+    // ✅ Calculate fallback duration
+    foreach ($reports as $report) {
+        if ($report->reported_at) {
+            $endTime = $report->resolved_at ?? now(); // Use now() for OPEN cases
+            $diff = $report->reported_at->diff($endTime);
+
+            $label = is_null($report->resolved_at) ? 'LIVE – ' : ''; // Tag open cases
+            $report->calculated_duration = $label . $diff->days . 'd ' . $diff->h . 'h ' . $diff->i . 'm';
+        } else {
+            $report->calculated_duration = '-';
+        }
+    }
+
+
+    // ✅ For filter dropdowns
+    $substations = Substation::all();
+    $statuses = ['open', 'closed'];
+    $sensorStatuses = ['online', 'repairing', 'offline'];
+    $months = SensorLogReport::selectRaw('MONTH(reported_at) as month')
+        ->distinct()
+        ->pluck('month');
+
+    return view('log-reports.index', compact(
+        'reports',
+        'substations',
+        'statuses',
+        'sensorStatuses',
+        'months'
+    ));
+}
+
 
 
     public function create()
@@ -101,13 +147,22 @@ class LogReportController extends Controller
             'remarks' => 'nullable|string|max:1000',
         ]);
 
+        // 1. Update the report
         $logReport->update([
             'status'       => 'resolved',
             'resolved_at'  => now(),
             'remarks'      => $request->remarks,
         ]);
 
-        return redirect()->route('log-reports.index')->with('success', 'Report resolved successfully.');
+        // 2. Update the sensor status to "online" and timestamp
+        if ($logReport->sensor) {
+            $logReport->sensor->update([
+                'status' => 'online',
+                'status_changed_at' => now()
+            ]);
+        }
+
+        return redirect()->route('log-reports.index')->with('success', 'Report resolved successfully. Sensor marked as online.');
     }
 
     public function editStatus($id)
