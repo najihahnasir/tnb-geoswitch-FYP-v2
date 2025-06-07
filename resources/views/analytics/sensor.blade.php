@@ -27,37 +27,7 @@
             <button onclick="viewChartAsPDF('totalSensorsChart')" class="btn btn-outline-secondary btn-sm">👁️ Preview Chart</button> --}}
         </div>
     </div>
-
-    <!-- Summary Cards -->
-    {{-- <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
-        <div class="col">
-            <div class="card text-center shadow-sm p-3">
-                <h6 class="card-title">Total Sensors</h6>
-                <h3 class="text-primary">{{ $totalSensors }}</h3>
-            </div>
-        </div>
-        <div class="col">
-            <div class="card text-center shadow-sm p-3">
-                <h6 class="card-title">Active Substations</h6>
-                <h3 class="text-success">{{ $activeSubstations }}</h3>
-            </div>
-        </div>
-        <div class="col">
-            <div class="card text-center shadow-sm p-3">
-                <h6 class="card-title">Offline Sensors</h6>
-                <h3 class="text-danger">{{ $offlineSensors }}</h3>
-            </div>
-        </div>
-    </div> --}}
-{{-- @php
-    dump([
-        'onlineSensors' => $onlineSensors ?? 'NOT SET',
-        'repairingSensors' => $repairingSensors ?? 'NOT SET',
-        'offlineSensors' => $offlineSensors ?? 'NOT SET',
-    ]);
-@endphp
-
-@include('partial-dashboard.popup-sensor') --}}
+    
     <div class="row g-3 mb-4">
         <div class="col-md-4">
             <div class="card shadow-sm border-start border-4 border-success h-100">
@@ -84,10 +54,6 @@
             </div>
         </div>
     </div>
-
-
-
-
 
     <!-- Filter Form -->
     <form id="filterForm" method="GET" class="row g-3 mb-4 align-items-end">

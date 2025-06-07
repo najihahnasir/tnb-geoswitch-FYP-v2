@@ -150,7 +150,7 @@ class LogReportController extends Controller
         // 1. Update the report
         $logReport->update([
             'status'       => 'resolved',
-            'resolved_at'  => now(),
+            'resolved_at'  => $logReport->resolved_at ?? now(),            
             'remarks'      => $request->remarks,
         ]);
 

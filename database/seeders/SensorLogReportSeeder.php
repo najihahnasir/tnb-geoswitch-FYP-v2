@@ -3,77 +3,70 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use App\Models\SensorLogReport;
-use App\Models\Sensor;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use App\Models\Sensor;
+use App\Models\SensorLogReport;
 
 class SensorLogReportSeeder extends Seeder
 {
     public function run(): void
     {
-        // Reset log table
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        SensorLogReport::query()->delete();
-        DB::statement('ALTER TABLE sensor_log_reports AUTO_INCREMENT = 1;');
+        SensorLogReport::truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
-        // Take only 10 sensors for test seeding
-        $sensors = Sensor::take(10)->get();
+        $sensors = Sensor::inRandomOrder()->take(30)->get(); // ✅ Spread across substations
         $caseNumber = 1;
-        $startDate = Carbon::create(2025, 5, 1, 8, 0);
+        $total = 0;
 
         foreach ($sensors as $sensor) {
-            // 1st log: goes offline
-            $reportedAt1 = $startDate->copy()->addHours(rand(0, 5));
-            $caseId1 = 'CASE-2025-' . str_pad($caseNumber++, 4, '0', STR_PAD_LEFT);
+            $statusChain = ['offline', 'repairing', 'online'];
+            $baseTime = Carbon::now()->subMonths(rand(2, 11))->startOfMonth()->addDays(rand(1, 5));
+            $previousStatus = 'online';
 
-            SensorLogReport::create([
-                'sensor_id'         => $sensor->id,
-                'substation_id'     => $sensor->switchgear->substation_id ?? null,
-                'switchgear_id'     => $sensor->switchgear_id,
-                'reported_by'       => 1,
-                'title'             => "{$sensor->type} sensor at {$sensor->tag} is OFFLINE",
-                'description'       => "System auto-log: sensor reported offline",
-                'reported_at'       => $reportedAt1,
-                'status'            => 'open',
-                'old_status'        => 'online',
-                'new_status'        => 'offline',
-                'status_changed_by' => 1,
-                'status_changed_at' => $reportedAt1,
-                'case_id'           => $caseId1,
-            ]);
+            foreach ($statusChain as $newStatus) {
+                $gapHours = rand(12, 72);
+                $baseTime->addHours($gapHours);
 
-            // 2nd log: status changed to repairing or online
-            $newStatus = collect(['repairing', 'online'])->random();
-            $reportedAt2 = $reportedAt1->copy()->addMinutes(rand(30, 120));
-            $caseId2 = 'CASE-2025-' . str_pad($caseNumber++, 4, '0', STR_PAD_LEFT);
+                $durationHours = rand(8, 48);
+                $resolvedAt = (clone $baseTime)->addHours($durationHours);
 
-            SensorLogReport::create([
-                'sensor_id'         => $sensor->id,
-                'substation_id'     => $sensor->switchgear->substation_id ?? null,
-                'switchgear_id'     => $sensor->switchgear_id,
-                'reported_by'       => 1,
-                'title'             => "{$sensor->type} sensor at {$sensor->tag} updated to " . strtoupper($newStatus),
-                'description'       => "System auto-log: status changed to {$newStatus}",
-                'reported_at'       => $reportedAt2,
-                'status'            => $newStatus === 'online' ? 'resolved' : 'open',
-                'old_status'        => 'offline',
-                'new_status'        => $newStatus,
-                'status_changed_by' => 1,
-                'status_changed_at' => $reportedAt2,
-                'resolved_at'       => $newStatus === 'online' ? $reportedAt2 : null,
-                'downtime_duration' => $reportedAt1->diff($reportedAt2)->format('%dd %hh %im'),
-                'case_id'           => $caseId2,
-            ]);
+                $caseId = 'CASE-2025-' . str_pad($caseNumber++, 4, '0', STR_PAD_LEFT);
 
-            // ✅ Sync latest status to sensors table
-            $sensor->update([
-                'status' => $newStatus,
-                'status_changed_at' => $reportedAt2
-            ]);
+                SensorLogReport::create([
+                    'sensor_id'         => $sensor->id,
+                    'substation_id'     => $sensor->switchgear->substation_id,
+                    'switchgear_id'     => $sensor->switchgear_id,
+                    'reported_by'       => 1,
+                    'title'             => "{$sensor->type} sensor at {$sensor->tag} changed to {$newStatus}",
+                    'description'       => "System auto-log: status changed to {$newStatus}",
+                    'reported_at'       => $baseTime,
+                    'resolved_at'       => $resolvedAt,
+                    'status'            => ($newStatus === 'online') ? 'resolved' : 'open',
+                    'old_status'        => $previousStatus,
+                    'new_status'        => $newStatus,
+                    'status_changed_by' => 1,
+                    'status_changed_at' => $baseTime,
+                    'created_at'        => $baseTime,
+                    'updated_at'        => $baseTime,
+                    'downtime_duration' => "{$durationHours} hours",
+                ]);
+
+                // Update sensor to latest status after the last log
+                if ($newStatus === 'online') {
+                    $sensor->update([
+                        'status' => 'online',
+                        'status_changed_at' => $resolvedAt,
+                    ]);
+                }
+
+                $previousStatus = $newStatus;
+                $baseTime = $resolvedAt;
+                $total++;
+            }
         }
 
-        echo "Seeded 10 sensors and synced status to sensors table.\n";
+        echo "✅ Seeded {$total} logs across multiple substations with realistic status transitions.\n";
     }
 }

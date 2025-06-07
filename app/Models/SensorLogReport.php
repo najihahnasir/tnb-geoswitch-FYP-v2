@@ -47,14 +47,32 @@ class SensorLogReport extends Model
         return $this->belongsTo(User::class, 'reported_by');
     }
 
-    public function getDurationAttribute()
+    // public function getDurationAttribute()
+    // {
+    //     if (!$this->resolved_at) return '-';
+
+    //     $diff = $this->reported_at->diff($this->resolved_at);
+    //     return sprintf('%dd %dh %dm', $diff->d, $diff->h, $diff->i);
+    // }
+
+    public function getCalculatedDurationAttribute()
     {
-        if (!$this->resolved_at) return '-';
+        if (!$this->reported_at) return '-';
 
-        $diff = $this->reported_at->diff($this->resolved_at);
-        return sprintf('%dd %dh %dm', $diff->d, $diff->h, $diff->i);
+        $start = $this->reported_at;
+        $end = $this->resolved_at ?? now(); // Live duration if not yet resolved
+
+        $diff = $start->diff($end);
+
+        $duration = sprintf('%dd %dh %dm',
+            $diff->d,
+            $diff->h,
+            $diff->i
+        );
+
+        return $this->status === 'open' ? 'LIVE ' . $duration : $duration;
     }
-
+    
     public function statusChanger()
     {
         return $this->belongsTo(User::class, 'status_changed_by');

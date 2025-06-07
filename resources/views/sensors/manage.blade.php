@@ -137,9 +137,9 @@
                                 <a href="{{ route('sensors.show', $sensor->id) }}" class="btn btn-outline-secondary btn-sm">
                                     <i class="fas fa-eye me-1"></i> View
                                 </a>
-                                @if($sensor->latestLogReport)
+                                @if($sensor->latestLogReport && $sensor->latestLogReport->status === 'open')
                                     <a href="{{ route('log-reports.editStatus', $sensor->latestLogReport->id) }}" class="btn btn-primary btn-sm">
-                                       <i class="bi bi-pencil-square"></i> Edit
+                                        <i class="bi bi-pencil-square"></i> Edit
                                     </a>
                                 @else
                                     <a href="{{ route('log-reports.create') }}" class="btn btn-outline-primary btn-sm">
