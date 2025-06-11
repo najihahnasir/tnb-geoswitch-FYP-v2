@@ -83,16 +83,16 @@
                 <thead class="table-light">
                     <tr>
                         <th>#Case ID</th>
-                        <th>Substation</th>
-                        <th>Switchgear</th>
-                        <th>Sensor</th>
-                        <th>Reported By</th>
+                        <th>Substation Name</th>
+                        <th>Switchgear  Panel</th>
+                        <th>Sensor Tag</th>
+                        <th>Report By</th>
                         {{-- <th>Title</th> --}}
                         <th>Description</th>
                         <th>Status</th>
-                        <th>Reported At</th>
-                        <th>Resolved At</th>
-                        <th>Downtime</th>
+                        <th>Report Date</th>
+                        <th>Resolved Time</th>
+                        <th>Downtime Duration</th>
                         {{-- <th>Remarks</th> --}}
                         <th>Actions</th>
                     </tr>
@@ -102,10 +102,39 @@
                         <tr>
                             <td class="fw-semibold">#{{ $report->case_id ?? '-' }}</td>
                             <td>{{ optional($report->substation)->substation_name ?? '-' }}</td>
-                            <td>{{ optional($report->switchgear)->display_name ?? optional($report->switchgear)->panel ?? '-' }}</td>
+                            <td>
+                                @if($report->switchgear)
+                                    <strong>{{ $report->switchgear->panel_name ?? '-' }}</strong><br>
+                                    <small class="text-muted">
+                                        {{ $report->switchgear->compartment ?? '-' }} | 
+                                        Lineup: {{ $report->switchgear->lineup ?? '-' }}<br>
+                                        Code: {{ $report->switchgear->switchgear_code ?? '-' }}
+                                    </small>
+                                @else
+                                    -
+                                @endif
+                            </td>
+                            {{-- <td>
+                                <span class="fw-semibold">{{ optional($report->sensor)->tag ?? '-' }}</span><br>
+                                
+                                <small class="text-muted">({{ optional($report->sensor)->type ?? '-' }})</small>
+                            </td> --}}
                             <td>
                                 <span class="fw-semibold">{{ optional($report->sensor)->tag ?? '-' }}</span><br>
-                                <small class="text-muted">({{ optional($report->sensor)->type ?? '-' }})</small>
+                                <small class="text-muted">
+                                    ({{ optional($report->sensor)->type ?? '-' }}) –
+                                    <span class="badge {{ 
+                                        $report->new_status === 'offline' ? 'bg-danger' :
+                                        ($report->new_status === 'repairing' ? 'bg-warning text-dark' : 'bg-success') }}">
+                                        {{ ucfirst($report->new_status) }}
+                                    </span>
+                                    <br>
+                                    @if($report->new_status === 'offline')
+                                        <span class="text-danger small">Downtime starts when sensor is offline.</span>
+                                    @elseif($report->new_status === 'repairing')
+                                        <span class="text-warning small">Sensor is under repair. Downtime still applies until it is online.</span>
+                                    @endif
+                                </small>
                             </td>
                             <td>{{ optional($report->reporter)->name ?? '-' }}</td>
                             {{-- <td>{{ $report->title ?? '-' }}</td> --}}
@@ -118,8 +147,11 @@
                             <td>{{ $report->reported_at ? $report->reported_at->format('Y-m-d H:i') : '-' }}</td>
                             <td>{{ $report->resolved_at ? $report->resolved_at->format('Y-m-d H:i') : '-' }}</td>
                             <td>
-                                @if(Str::startsWith($report->calculated_duration, 'LIVE'))
-                                    <span class="text-danger fw-bold">{{ $report->calculated_duration }}</span>
+                                @if($report->status === 'open')
+                                    <span class="live-countdown text-danger fw-bold"
+                                        data-reported-at="{{ $report->reported_at->format('Y-m-d H:i:s') }}">
+                                        IN PROGRESS – calculating...
+                                    </span>
                                 @else
                                     {{ $report->calculated_duration }}
                                 @endif
@@ -146,3 +178,28 @@
     </div>
 </div>
 @endsection
+@push('after-scripts')
+<script>
+    function updateLiveCountdowns() {
+        const elements = document.querySelectorAll('.live-countdown');
+        const now = new Date();
+
+        elements.forEach(el => {
+            const reportedAt = new Date(el.getAttribute('data-reported-at'));
+            const diff = Math.floor((now - reportedAt) / 1000); // seconds
+
+            const days = Math.floor(diff / (60 * 60 * 24));
+            const hours = Math.floor((diff % (60 * 60 * 24)) / 3600);
+            const minutes = Math.floor((diff % 3600) / 60);
+            const seconds = diff % 60;
+
+            el.innerText = `IN PROGRESS – ${days}d ${hours}h ${minutes}m ${seconds}s`;
+        });
+    }
+
+    // Initial call and interval
+    updateLiveCountdowns();
+    setInterval(updateLiveCountdowns, 1000);
+</script>
+@endpush
+

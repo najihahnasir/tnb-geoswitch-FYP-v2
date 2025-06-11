@@ -8,11 +8,14 @@ class Switchgear extends Model
 {
     protected $fillable = [
         'substation_id',
-        'name',
+        'panel_name',
+        'panel_code',
         'lineup',
-        'panel',
         'compartment',
+        'compartment_code',
+        'switchgear_code',
     ];
+
     
     public function substation()
     {
