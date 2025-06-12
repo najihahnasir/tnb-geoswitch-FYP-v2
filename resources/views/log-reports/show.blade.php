@@ -14,9 +14,23 @@
                 <dt class="col-sm-3">Substation</dt>
                 <dd class="col-sm-9">{{ optional($logReport->substation)->substation_name ?? '-' }}</dd>
 
+                {{-- <dt class="col-sm-3">Switchgear</dt>
+                <dd class="col-sm-9">{{ optional($logReport->switchgear)->panel ?? '-' }}</dd> --}}
                 <dt class="col-sm-3">Switchgear</dt>
-                <dd class="col-sm-9">{{ optional($logReport->switchgear)->panel ?? '-' }}</dd>
-
+                <dd class="col-sm-9">
+                    @if($logReport->switchgear)
+                        <div class="switchgear-details">
+                            <div><strong>Panel:</strong> {{ $logReport->switchgear->panel_name ?? '-' }}</div>
+                            <div><strong>Code:</strong> {{ $logReport->switchgear->switchgear_code ?? '-' }}</div>
+                            <div class="text-muted small mt-1">
+                                Lineup: {{ $logReport->switchgear->lineup ?? '-' }} | 
+                                Compartment: {{ $logReport->switchgear->compartment ?? '-' }} ({{ $logReport->switchgear->compartment_code ?? '-' }})
+                            </div>
+                        </div>
+                    @else
+                        -
+                    @endif
+                </dd>
                 <dt class="col-sm-3">Sensor</dt>
                 <dd class="col-sm-9">
                     {{ optional($logReport->sensor)->tag ?? '-' }} ({{ optional($logReport->sensor)->type ?? '-' }})

@@ -76,7 +76,8 @@
             </div>
         </div>
     </div>
-
+    
+    {{-- index summary table  --}}
     <div class="card shadow-sm">
         <div class="card-body table-responsive">
             <table class="table table-bordered table-striped">
@@ -114,11 +115,6 @@
                                     -
                                 @endif
                             </td>
-                            {{-- <td>
-                                <span class="fw-semibold">{{ optional($report->sensor)->tag ?? '-' }}</span><br>
-                                
-                                <small class="text-muted">({{ optional($report->sensor)->type ?? '-' }})</small>
-                            </td> --}}
                             <td>
                                 <span class="fw-semibold">{{ optional($report->sensor)->tag ?? '-' }}</span><br>
                                 <small class="text-muted">

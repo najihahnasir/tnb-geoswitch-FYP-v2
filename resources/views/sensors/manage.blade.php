@@ -101,15 +101,15 @@
                     <tr>
                         <th>#</th>
                         <th>Sensor Tag</th>
-                        <th>Type</th>
-                        <th>Substation</th>
+                        <th>Sensor Type</th>
+                        <th>Substation Name</th>
+                        <th>Switchgear Panel</th>
                         <th>Status</th>
-                        <th>Panel</th>
-                        @if(request('filter') === 'offline')
-                        <th>Downtime</th>
-                        @endif
-                        <th>Updated At</th>
                         <th>Created At</th>
+                        <th>Updated At</th>
+                        @if(in_array(request('filter'), ['offline', 'repairing']))
+                            <th>Downtime Duration</th>
+                        @endif
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -121,17 +121,39 @@
                         <td>{{ $sensor->type }}</td>
                         <td>{{ optional($sensor->switchgear->substation)->substation_name ?? '-' }}</td>
                         <td>
+                            @if($sensor->switchgear)
+                                <strong>{{ $sensor->switchgear->panel_name ?? 'Panel' }}</strong><br>
+                                <small class="text-muted">
+                                    {{ $sensor->switchgear->compartment ?? 'Compartment' }} | 
+                                    Lineup: {{ $sensor->switchgear->lineup ?? 'N/A' }}<br>
+                                    Code: {{ $sensor->switchgear->switchgear_code ?? 'N/A' }}
+                                </small>
+                            @else
+                                -
+                            @endif
+                        </td>
+                        <td>
                             @php $status = strtolower($sensor->status); @endphp
                             <span class="badge {{ $status == 'online' ? 'bg-success' : ($status == 'repairing' ? 'bg-warning text-dark' : 'bg-danger') }}">
                                 {{ ucfirst($status) }}
                             </span>
                         </td>
-                        <td>{{ optional($sensor->switchgear)->panel ?? '-' }}</td>
-                        @if(request('filter') === 'offline')
-                        <td>{{ $sensor->latestLogReport?->downtime_duration ?? '-' }}</td>
-                        @endif
-                        <td>{{ $sensor->updated_at->format('Y-m-d H:i') }}</td>
                         <td>{{ $sensor->created_at->format('Y-m-d H:i') }}</td>
+                        <td>{{ $sensor->updated_at->format('Y-m-d H:i') }}</td>
+                        @if(in_array(request('filter'), ['offline', 'repairing']))
+                            <td>
+                                @if($sensor->status !== 'online' && $sensor->latestLogReport && $sensor->latestLogReport->status === 'open')
+                                    <span class="live-countdown text-danger fw-bold"
+                                        data-reported-at="{{ $sensor->latestLogReport->reported_at->format('Y-m-d H:i:s') }}">
+                                        IN PROGRESS – calculating...
+                                    </span>
+                                @elseif($sensor->latestLogReport)
+                                    {{ $sensor->latestLogReport->downtime_duration ?? '-' }}
+                                @else
+                                    -
+                                @endif
+                            </td>
+                        @endif
                         <td>
                             <div class="d-flex gap-2">
                                 <a href="{{ route('sensors.show', $sensor->id) }}" class="btn btn-outline-secondary btn-sm">
@@ -142,7 +164,7 @@
                                         <i class="bi bi-pencil-square"></i> Edit
                                     </a>
                                 @else
-                                    <a href="{{ route('log-reports.create') }}" class="btn btn-outline-primary btn-sm">
+                                    <a href="{{ route('log-reports.create', ['sensor_id' => $sensor->id]) }}" class="btn btn-outline-primary btn-sm">
                                         Report Issue
                                     </a>
                                 @endif
@@ -163,3 +185,27 @@
     </div>
 </div>
 @endsection
+@push('after-scripts')
+<script>
+    function updateLiveCountdowns() {
+        const elements = document.querySelectorAll('.live-countdown');
+        const now = new Date();
+
+        elements.forEach(el => {
+            const reportedAt = new Date(el.getAttribute('data-reported-at'));
+            const diff = Math.floor((now - reportedAt) / 1000); // seconds
+
+            const days = Math.floor(diff / (60 * 60 * 24));
+            const hours = Math.floor((diff % (60 * 60 * 24)) / 3600);
+            const minutes = Math.floor((diff % 3600) / 60);
+            const seconds = diff % 60;
+
+            el.innerText = `IN PROGRESS – ${days}d ${hours}h ${minutes}m ${seconds}s`;
+        });
+    }
+
+    // Initial call and interval
+    updateLiveCountdowns();
+    setInterval(updateLiveCountdowns, 1000);
+</script>
+@endpush

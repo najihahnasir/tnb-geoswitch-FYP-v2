@@ -248,10 +248,26 @@
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">Panel:</label>
-                            <div>{{ optional($sensor->switchgear)->panel ?? '-' }}</div>
+                            <label class="form-label fw-bold">Panel Name:</label>
+                            <div>{{ optional($sensor->switchgear)->panel_name ?? '-' }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Lineup:</label>
+                            <div>{{ optional($sensor->switchgear)->lineup ?? '-' }}</div>
                         </div>
                     </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Compartment:</label>
+                            <div>{{ optional($sensor)->compartment ?? '-' }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Switchgear Code:</label>
+                            <div>{{ optional($sensor->switchgear)->switchgear_code ?? '-' }}</div>
+                        </div>
+                    </div>
+
                 </div>
                 {{-- Log History Tab --}}
                 <div class="tab-pane fade" id="logs" role="tabpanel">
@@ -263,17 +279,17 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th>Case ID</th>
-                                        <th>Substation</th>
-                                        <th>Switchgear</th>
-                                        <th>Sensor</th>
-                                        <th>Reported By</th>
-                                        <th>Title</th>
+                                        <th>Substation Name</th>
+                                        <th>Switchgear Panel</th>
+                                        <th>Sensor Tag</th>
+                                        <th>Report By</th>
                                         <th>Description</th>
+                                        {{-- <th>Title</th> --}}
                                         <th>Status</th>
-                                        <th>Reported At</th>
-                                        <th>Resolved At</th>
+                                        <th>Report Date</th>
+                                        <th>Resolved Time</th>
                                         <th>Downtime Duration</th>
-                                        <th>Remarks</th>
+                                        {{-- <th>Remarks</th> --}}
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -283,43 +299,55 @@
                                             {{-- <td>#{{ $report->id }}</td> --}}
                                             <td>{{ $report->case_id ?? '-' }}</td>
                                             <td>{{ optional($report->substation)->substation_name ?? '-' }}</td>
-                                            <td>{{ optional($report->switchgear)->panel ?? '-' }}</td>
                                             <td>
-                                                {{ optional($report->sensor)->tag ?? '-' }} 
-                                                ({{ optional($report->sensor)->type ?? '-' }})
+                                                @if($report->switchgear)
+                                                    <strong>{{ $report->switchgear->panel_name ?? '-' }}</strong><br>
+                                                    <small class="text-muted">
+                                                        {{ $report->switchgear->compartment ?? '-' }} | 
+                                                        Lineup: {{ $report->switchgear->lineup ?? '-' }}<br>
+                                                        Code: {{ $report->switchgear->switchgear_code ?? '-' }}
+                                                    </small>
+                                                @else
+                                                    -
+                                                @endif
+                                            </td>                                            
+                                            <td>
+                                                <strong>{{ $report->sensor->tag ?? '-' }}</strong><br>
+                                                <small class="text-muted">
+                                                    {{ $report->sensor->type ?? '-' }}
+                                                </small>
                                             </td>
                                             <td>{{ optional($report->reporter)->name ?? '-' }}</td>
-                                            <td>{{ $report->title ?? '-' }}</td>
                                             <td>{{ Str::limit($report->description ?? '-', 50) }}</td>
+                                            {{-- <td>{{ $report->title ?? '-' }}</td> --}}
                                             <td>
                                                 @php
                                                     $normalizedStatus = strtolower(trim($report->status));
                                                     $statusColor = match($normalizedStatus) {
                                                         'open' => 'danger',
                                                         'repairing' => 'warning text-dark',
-                                                        'closed' => 'success',
+                                                        'resolved', 'closed' => 'success',
                                                         default => 'secondary'
                                                     };
                                                 @endphp
                                                 <span class="badge bg-{{ $statusColor }}">
-                                                    {{ ucfirst($report->status) }}
+                                                    {{ ucfirst($normalizedStatus) }}
                                                 </span>
-
-                                                {{-- <span class="badge bg-{{ $report->status === 'open' ? 'danger' : 'success' }}">
-                                                    {{ ucfirst($report->status) }}
-                                                </span> --}}
                                             </td>
+
                                             <td>{{ $report->reported_at ? $report->reported_at->format('Y-m-d H:i') : '-' }}</td>
                                             <td>{{ $report->resolved_at ? $report->resolved_at->format('Y-m-d H:i') : '-' }}</td>
-                                            @php
-                                                $duration = $report->downtime_duration;
-                                                if (!$duration && $report->reported_at && $report->resolved_at) {
-                                                    $diff = $report->reported_at->diff($report->resolved_at);
-                                                    $duration = $diff->days . 'd ' . $diff->h . 'h ' . $diff->i . 'm';
-                                                }
-                                            @endphp
-                                            <td>{{ $duration ?? '-' }}</td>
-                                            <td>{{ $report->remarks ?? '-' }}</td>
+                                            <td>
+                                                @if($report->status === 'open')
+                                                    <span class="live-countdown text-danger fw-bold"
+                                                        data-reported-at="{{ $report->reported_at->format('Y-m-d H:i:s') }}">
+                                                        IN PROGRESS – calculating...
+                                                    </span>
+                                                @else
+                                                    {{ $report->calculated_duration }}
+                                                @endif
+                                            </td>
+                                            {{-- <td>{{ $report->remarks ?? '-' }}</td> --}}
                                             <td>
                                                 <a href="{{ route('log-reports.show', $report) }}" class="btn btn-sm btn-info">View</a>
                                             </td>
@@ -346,6 +374,28 @@
             row.style.display = [...row.cells].some(td => td.innerText.toLowerCase().includes(value)) ? '' : 'none';
         });
     });
+</script>
+<script>
+    function updateLiveCountdowns() {
+        const elements = document.querySelectorAll('.live-countdown');
+        const now = new Date();
+
+        elements.forEach(el => {
+            const reportedAt = new Date(el.getAttribute('data-reported-at'));
+            const diff = Math.floor((now - reportedAt) / 1000); // seconds
+
+            const days = Math.floor(diff / (60 * 60 * 24));
+            const hours = Math.floor((diff % (60 * 60 * 24)) / 3600);
+            const minutes = Math.floor((diff % 3600) / 60);
+            const seconds = diff % 60;
+
+            el.innerText = `IN PROGRESS – ${days}d ${hours}h ${minutes}m ${seconds}s`;
+        });
+    }
+
+    // Initial call and interval
+    updateLiveCountdowns();
+    setInterval(updateLiveCountdowns, 1000);
 </script>
 @endpush
 
