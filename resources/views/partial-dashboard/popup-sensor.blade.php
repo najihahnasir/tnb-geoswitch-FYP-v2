@@ -37,9 +37,10 @@
                             <div>
                                 <strong>{{ $sensor->tag }}</strong> ({{ $sensor->type }})<br>
                                 <small class="text-muted">
-                                    Switchgear: {{ $sensor->switchgear->display_name ?? '-' }}<br>
-                                    Panel: {{ $sensor->switchgear->panel ?? '-' }},
-                                    Compartment: {{ $sensor->switchgear->compartment ?? '-' }}
+                                    Panel: {{ $sensor->switchgear->panel_name ?? '-' }}<br>
+                                    Lineup: {{ $sensor->switchgear->lineup ?? '-' }} | 
+                                    Compartment: {{ $sensor->switchgear->compartment ?? '-' }}<br>
+                                    Switchgear Code: {{ $sensor->switchgear->switchgear_code ?? '-' }}
                                 </small>
                             </div>
                             <span class="text-success fw-semibold small">{{ ucfirst($sensor->status) }}</span>
@@ -58,66 +59,6 @@
 
 </div>
 
-
-{{-- <div id="repairingSensorTemplate" style="display: none;">
-    @php
-        $grouped = $repairingSensors->groupBy(fn($s) => $s->switchgear->substation->substation_name ?? 'Unknown');
-    @endphp
-    @foreach($grouped as $substation => $sensors)
-        <div class="border rounded-lg p-3 mb-3">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <strong class="text-warning">📍 {{ $substation }}</strong>
-                <span class="badge bg-warning text-dark">{{ $sensors->count() }} Repairing</span>
-            </div>
-            <ul class="list-group list-group-flush">
-                @foreach($sensors as $sensor)
-                    <li class="list-group-item d-flex justify-content-between">
-                        <span><strong>{{ $sensor->tag }}</strong> ({{ $sensor->type }})</span>
-                        <span class="text-warning fw-semibold small">{{ ucfirst($sensor->status) }}</span>
-                    </li>
-                @endforeach
-            </ul>
-            <div class="mt-2 text-end">
-                <a href="{{ route('sensors.index', ['filter' => 'repairing', 'substation' => $substation]) }}" class="text-decoration-none small text-warning">View more →</a>
-            </div>
-        </div>
-    @endforeach
-</div> --}}
-{{-- <div id="repairingSensorTemplate" style="display: none;">
-    @php
-        $grouped = $repairingSensors->groupBy(fn($s) => $s->switchgear->substation->substation_name ?? 'Unknown');
-    @endphp
-    @foreach($grouped as $substation => $sensors)
-        <div class="border rounded-lg p-3 mb-3">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <strong class="text-warning">📍 {{ $substation }}</strong>
-                <span class="badge bg-warning text-dark">{{ $sensors->count() }} Repairing</span>
-            </div>
-            <ul class="list-group list-group-flush">
-                @foreach($sensors as $sensor)
-                    <li class="list-group-item">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <strong>{{ $sensor->tag }}</strong> ({{ $sensor->type }})<br>
-                                <small class="text-muted">
-                                    Switchgear: {{ $sensor->switchgear->display_name ?? '-' }}<br>
-                                    Panel: {{ $sensor->switchgear->panel ?? '-' }},
-                                    Compartment: {{ $sensor->switchgear->compartment ?? '-' }}
-                                </small>
-                            </div>
-                            <span class="text-warning fw-semibold small">{{ ucfirst($sensor->status) }}</span>
-                        </div>
-                    </li>
-                @endforeach
-            </ul>
-            <div class="mt-2 text-end">
-                <a href="{{ route('sensors.index', ['filter' => 'repairing', 'substation' => $substation->id]) }}" class="text-warning text-decoration-none small me-2">
-                    View Repairing →
-                </a>            
-            </div>
-        </div>
-    @endforeach
-</div> --}}
 <div id="repairingSensorTemplate" style="display: none;">
     @php
         $grouped = $repairingSensors->groupBy(fn($s) => $s->switchgear->substation->id ?? 'unknown');
@@ -137,9 +78,10 @@
                             <div>
                                 <strong>{{ $sensor->tag }}</strong> ({{ $sensor->type }})<br>
                                 <small class="text-muted">
-                                    Switchgear: {{ $sensor->switchgear->display_name ?? '-' }}<br>
-                                    Panel: {{ $sensor->switchgear->panel ?? '-' }},
-                                    Compartment: {{ $sensor->switchgear->compartment ?? '-' }}
+                                    Panel: {{ $sensor->switchgear->panel_name ?? '-' }}<br>
+                                    Lineup: {{ $sensor->switchgear->lineup ?? '-' }} | 
+                                    Compartment: {{ $sensor->switchgear->compartment ?? '-' }}<br>
+                                    Switchgear Code: {{ $sensor->switchgear->switchgear_code ?? '-' }}
                                 </small>
                             </div>
                             <span class="text-warning fw-semibold small">{{ ucfirst($sensor->status) }}</span>
@@ -157,67 +99,6 @@
     @endforeach
 </div>
 
-
-
-{{-- <div id="offlineSensorTemplate" style="display: none;">
-    @php
-        $grouped = $offlineSensors->groupBy(fn($s) => $s->switchgear->substation->substation_name ?? 'Unknown');
-    @endphp
-    @foreach($grouped as $substation => $sensors)
-        <div class="border rounded-lg p-3 mb-3">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <strong class="text-danger">📍 {{ $substation }}</strong>
-                <span class="badge bg-danger">{{ $sensors->count() }} Offline</span>
-            </div>
-            <ul class="list-group list-group-flush">
-                @foreach($sensors as $sensor)
-                    <li class="list-group-item d-flex justify-content-between">
-                        <span><strong>{{ $sensor->tag }}</strong> ({{ $sensor->type }})</span>
-                        <span class="text-danger fw-semibold small">{{ ucfirst($sensor->status) }}</span>
-                    </li>
-                @endforeach
-            </ul>
-            <div class="mt-2 text-end">
-                <a href="{{ route('sensors.index', ['filter' => 'offline', 'substation' => $substation]) }}" class="text-decoration-none small text-danger">View more →</a>
-            </div>
-        </div>
-    @endforeach
-</div> --}}
-{{-- <div id="offlineSensorTemplate" style="display: none;">
-    @php
-        $grouped = $offlineSensors->groupBy(fn($s) => $s->switchgear->substation->substation_name ?? 'Unknown');
-    @endphp
-    @foreach($grouped as $substation => $sensors)
-        <div class="border rounded-lg p-3 mb-3">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <strong class="text-danger">📍 {{ $substation }}</strong>
-                <span class="badge bg-danger">{{ $sensors->count() }} Offline</span>
-            </div>
-            <ul class="list-group list-group-flush">
-                @foreach($sensors as $sensor)
-                    <li class="list-group-item">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <strong>{{ $sensor->tag }}</strong> ({{ $sensor->type }})<br>
-                                <small class="text-muted">
-                                    Switchgear: {{ $sensor->switchgear->display_name ?? '-' }}<br>
-                                    Panel: {{ $sensor->switchgear->panel ?? '-' }},
-                                    Compartment: {{ $sensor->switchgear->compartment ?? '-' }}
-                                </small>
-                            </div>
-                            <span class="text-danger fw-semibold small">{{ ucfirst($sensor->status) }}</span>
-                        </div>
-                    </li>
-                @endforeach
-            </ul>
-            <div class="mt-2 text-end">
-                <a href="{{ route('sensors.index', ['filter' => 'offline', 'substation' => $substation->id]) }}" class="text-danger text-decoration-none small">
-                        View Offline →
-                    </a>           
-            </div>
-        </div>
-    @endforeach
-</div> --}}
 <div id="offlineSensorTemplate" style="display: none;">
     @php
         $grouped = $offlineSensors->groupBy(fn($s) => $s->switchgear->substation->id ?? 'unknown');
@@ -237,9 +118,10 @@
                             <div>
                                 <strong>{{ $sensor->tag }}</strong> ({{ $sensor->type }})<br>
                                 <small class="text-muted">
-                                    Switchgear: {{ $sensor->switchgear->display_name ?? '-' }}<br>
-                                    Panel: {{ $sensor->switchgear->panel ?? '-' }},
-                                    Compartment: {{ $sensor->switchgear->compartment ?? '-' }}
+                                    Panel: {{ $sensor->switchgear->panel_name ?? '-' }}<br>
+                                    Lineup: {{ $sensor->switchgear->lineup ?? '-' }} | 
+                                    Compartment: {{ $sensor->switchgear->compartment ?? '-' }}<br>
+                                    Switchgear Code: {{ $sensor->switchgear->switchgear_code ?? '-' }}
                                 </small>
                             </div>
                             <span class="text-danger fw-semibold small">{{ ucfirst($sensor->status) }}</span>
