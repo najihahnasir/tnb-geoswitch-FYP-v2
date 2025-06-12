@@ -1,15 +1,25 @@
 @extends('layouts.master')
 
-@section('title', 'Manage Substations')
-@section('page-title', 'Manage Substations')
+@section('title', 'Substations Summary')
+@section('page-title', 'Substations Summary')
 
 @section('content')
 <div class="container py-4" style="background-color: #f8f9fa; border-radius: 8px;">
     {{-- Summary Badges --}}
-    <div class="d-flex flex-wrap gap-3 align-items-center mb-3">
-        <h5 class="mb-0 text-dark"><i class="fas fa-bolt me-2 text-primary"></i>Substation Overview:</h5>
-        <span class="badge bg-success">Total Substations: {{ count($substations) }}</span>
+    {{-- Overview Header Row --}}
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+        <div class="d-flex flex-wrap gap-3 align-items-center">
+            <h5 class="mb-0 text-dark">
+                <i class="fas fa-bolt me-2 text-primary"></i>Substation Overview:
+            </h5>
+            <span class="badge bg-success">Total Substations: {{ count($substations) }}</span>
+        </div>
+        
+        <a href="{{ route('substations.summaryPdf') }}" class="btn btn-danger">
+            <i class="fas fa-file-pdf me-1"></i> Download PDF
+        </a>
     </div>
+
 
     {{-- Filter Panel --}}
     <div class="card mb-4 shadow-sm">
@@ -70,10 +80,18 @@
                         <td>{{ $substation->latitude }}, {{ $substation->longitude }}</td>
                         <td>{{ $substation->total_sensors }}</td>
                         <td>
-                            <span class="badge bg-success">Online: {{ $substation->online }}</span>
-                            <span class="badge bg-warning text-dark">Repairing: {{ $substation->repairing }}</span>
-                            <span class="badge bg-danger">Offline: {{ $substation->offline }}</span>
+                            <span class="badge bg-success">
+                                online: {{ $substation->sensors->filter(fn($s) => strtolower($s->status) === 'online')->count() }}
+                            </span>
+                            <span class="badge bg-warning text-dark">
+                                repairing: {{ $substation->sensors->filter(fn($s) => strtolower($s->status) === 'repairing')->count() }}
+                            </span>
+                            <span class="badge bg-danger">
+                                offline: {{ $substation->sensors->filter(fn($s) => strtolower($s->status) === 'offline')->count() }}
+                            </span>
                         </td>
+
+                        
                         <td>{{ $substation->last_updated ? $substation->last_updated->format('Y-m-d H:i') : '-' }}</td>
                         <td>
                             {{-- <a href="{{ route('dashboard.substation-map', ['id' => $substation['id']]) }}" class="btn btn-sm btn-outline-primary">Map</a> --}}

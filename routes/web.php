@@ -60,6 +60,11 @@ Route::get('/analytics/sensors', [SensorAnalyticsController::class, 'index'])->n
 // All fixed substation routes
 Route::get('/substations/summary', [SubstationController::class, 'summary'])->name('substations.summary');
 Route::get('/substations/create', [SubstationController::class, 'create'])->name('substations.create');
+Route::get('/substations/export-summary-pdf', [SubstationController::class, 'summaryPdf'])
+    ->name('substations.summaryPdf');
+//Export individual substation profile as PDF
+Route::get('/substations/{substation}/export-pdf', [SubstationController::class, 'exportPdf'])
+    ->name('substations.exportPdf');
 
 // Resource route
 Route::resource('substations', SubstationController::class);
@@ -103,6 +108,8 @@ Route::middleware(['auth'])->group(function () {
     // Dashboard route
     Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
     // Route::get('/dashboard', [DashboardController::class, 'index']);
+    Route::get('/admin/sync-log-reports', [\App\Http\Controllers\LogReportController::class, 'syncOfflineReports']);
+
 
 
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
@@ -140,20 +147,20 @@ Route::middleware(['auth'])->group(function () {
     // Route::get('researchgrants/{researchgrant}/milestones', [MilestoneController::class, 'index'])->name('researchgrants.milestones.index');
 
     // Milestone routes
-    Route::get('researchgrants/{researchgrant}/milestones', [MilestoneController::class, 'index'])->name('researchgrants.milestones.index');
-    Route::get('researchgrants/{researchgrant}/milestones/create', [MilestoneController::class, 'create'])->name('researchgrants.milestones.create');
-    Route::post('researchgrants/{researchgrant}/milestones', [MilestoneController::class, 'store'])->name('researchgrants.milestones.store');
-    Route::get('researchgrants/{researchgrant}/milestones/{milestone}/edit', [MilestoneController::class, 'edit'])->name('researchgrants.milestones.edit');
-    Route::put('/researchgrants/{researchGrantId}/milestones/{milestoneId}', [MilestoneController::class, 'update'])->name('researchgrants.milestones.update');;
-    Route::patch('researchgrants/{researchGrant}/milestones/{milestone}/update-status', [MilestoneController::class, 'updateStatus'])
-    ->name('researchgrants.milestones.update-status');
+    // Route::get('researchgrants/{researchgrant}/milestones', [MilestoneController::class, 'index'])->name('researchgrants.milestones.index');
+    // Route::get('researchgrants/{researchgrant}/milestones/create', [MilestoneController::class, 'create'])->name('researchgrants.milestones.create');
+    // Route::post('researchgrants/{researchgrant}/milestones', [MilestoneController::class, 'store'])->name('researchgrants.milestones.store');
+    // Route::get('researchgrants/{researchgrant}/milestones/{milestone}/edit', [MilestoneController::class, 'edit'])->name('researchgrants.milestones.edit');
+    // Route::put('/researchgrants/{researchGrantId}/milestones/{milestoneId}', [MilestoneController::class, 'update'])->name('researchgrants.milestones.update');;
+    // Route::patch('researchgrants/{researchGrant}/milestones/{milestone}/update-status', [MilestoneController::class, 'updateStatus'])
+    // ->name('researchgrants.milestones.update-status');
 
-    Route::delete('researchgrants/{researchgrant}/milestones/{milestone}', [MilestoneController::class, 'destroy'])->name('researchgrants.milestones.destroy');
-    Route::get('researchgrants/{researchgrant}/milestones/{milestone}', [MilestoneController::class, 'show'])
-    ->name('researchgrants.milestones.show');
+    // Route::delete('researchgrants/{researchgrant}/milestones/{milestone}', [MilestoneController::class, 'destroy'])->name('researchgrants.milestones.destroy');
+    // Route::get('researchgrants/{researchgrant}/milestones/{milestone}', [MilestoneController::class, 'show'])
+    // ->name('researchgrants.milestones.show');
 
-    Route::resource('researchgrants.milestones', MilestoneController::class)
-    ->only(['index', 'show', 'edit', 'update', 'destroy']);
+    // Route::resource('researchgrants.milestones', MilestoneController::class)
+    // ->only(['index', 'show', 'edit', 'update', 'destroy']);
 
     // Route::resource('academicians', AcademicianController::class);
 

@@ -6,7 +6,23 @@
 @push('after-styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <style>
-    #map { height: 450px; border-radius: 10px; }
+    /* #map { height: 450px; border-radius: 10px; } */
+    #map {
+        height: 300px !important; /* Reduced from 450px */
+        border-radius: 10px;
+        width: 100%;
+    }
+    .leaflet-container {
+        z-index: 0; /* keep it lower than modals or navbars */
+        overflow: visible !important;
+        border-radius: 8px;
+    }
+
+    .leaflet-popup {
+        z-index: 1051 !important;
+    }
+
+
     .legend-box {
         position: absolute;
         bottom: 20px;
@@ -29,77 +45,169 @@
         border-radius: 50%;
         margin-right: 6px;
     }
+    .accordion-button {
+        background-color: #ffffff !important;
+        color: #000;
+    }
+    .accordion-button.collapsed {
+        background-color: #ffffff;
+    }
+    .accordion-button {
+        border-bottom: 1px solid #dee2e6;
+        box-shadow: none;
+    }
+
+
+
 </style>
 @endpush
 
 @section('content')
-<div class="container py-1">
+<div class="container py-3 px-2 px-md-4">
+    {{-- ⚡ Substation Info + Map --}}
+    <div class="card shadow-sm mb-4">
+        <div class="card-body px-4 py-3">
+            <div class="row align-items">
+                <!-- Substation Info: narrower -->
+                <div class="col-md-4">
+                    <h5 class="card-title text-primary d-flex align-items-center mb-2">
+                        <i class="fas fa-bolt text-warning me-2"></i>{{ $substation->substation_name }}
+                    </h5>
 
-    {{-- Substation Info Card --}}
-    <div class="card shadow-sm mb-4 mt-0">
-        <div class="card-body">
-            <h6 class="card-title text-primary"><i class=" me-2 text-warning"></i>{{ $substation->substation_name }}</h6>
-            <p><i class="fas fa-map-marker-alt me-1 text-danger"></i> <strong>Location:</strong> {{ $substation->latitude }}, {{ $substation->longitude }}</p>
-            <p><i class="fas fa-plug me-1 text-success"></i> <strong>Total Switchgears:</strong> {{ $substation->switchgears->count() }}</p>
-            <p>
-                <span class="badge bg-success me-2">Online: {{ $sensorMarkers->where('status', 'online')->count() }}</span>
-                <span class="badge bg-warning text-dark me-2">Repairing: {{ $sensorMarkers->where('status', 'repairing')->count() }}</span>
-                <span class="badge bg-danger">Offline: {{ $sensorMarkers->where('status', 'offline')->count() }}</span>
-            </p>
+                    <p class="mb-1">
+                        <strong>Location:</strong> {{ $substation->latitude }}, {{ $substation->longitude }}
+                    </p>
+
+                    <p class="mb-2">
+                        <strong>Total Panels:</strong> {{ $substation->switchgears->groupBy('panel_code')->count() }}
+                    </p>
+
+                    <p class="mb-2">
+                        <strong>Total Compartments:</strong> {{ $substation->switchgears->flatMap->sensors->pluck('compartment')->unique()->count() }}
+                    </p>
+
+                    <p class="mb-2">
+                        <strong>Total Sensors:</strong> {{ $substation->switchgears->flatMap->sensors->count() }}
+                    </p>
+
+
+                    <div class="d-flex flex-wrap gap-2 mt-2">
+                        <span class="badge bg-success px-3 py-2">
+                            🟢 Online: {{ collect($sensorMarkers)->filter(fn($s) => strtolower($s['status']) === 'online')->count() }}
+                        </span>
+                        <span class="badge bg-warning text-dark px-3 py-2">
+                            🟠 Repairing: {{ collect($sensorMarkers)->filter(fn($s) => strtolower($s['status']) === 'repairing')->count() }}
+                        </span>
+                        <span class="badge bg-danger px-3 py-2">
+                            🔴 Offline: {{ collect($sensorMarkers)->filter(fn($s) => strtolower($s['status']) === 'offline')->count() }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Sensor Map: wider -->
+                <div class="col-md-8">
+                    <div class="rounded border overflow-hidden" style="height: 320px; width: 100%;">
+                        <div id="map" style="height: 100%; width: 100%;"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
 
-    {{-- Switchgear & Sensor Summary --}}
-{{-- Switchgear & Sensor Summary --}}
-<div class="card mb-4">
-    <div class="card-header bg-white">
-        <h5 class="mb-0">🔌 Switchgear & Sensor Summary</h5>
-    </div>
-    <div class="card-body p-0">
-        <div style="max-height: 400px; overflow-y: auto;" class="p-3">
-            <ul class="list-group list-group-flush">
-                @foreach($substation->switchgears as $switchgear)
+    {{-- 🔌 Switchgear & Sensor Summary --}}
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-secondary text-white d-flex align-items-center">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-plug me-2"></i>
+                <h5 class="mb-0">Switchgear & Sensor Summary</h5>
+            </div>
+            <a href="{{ route('substations.exportPdf', $substation->id) }}" class="btn btn-sm btn-light text-danger ms-auto">
+                <i class="fas fa-file-pdf me-1"></i> Download PDF
+            </a>
+        </div>
+        <div class="card-body p-0">
+            <div class="accordion" id="panelAccordion">
+                @foreach($substation->switchgears->groupBy('panel_code') as $panelCode => $switchgearsInPanel)
                     @php
-                        $onlineCount = $switchgear->sensors->where('status', 'online')->count();
-                        $repairingCount = $switchgear->sensors->where('status', 'repairing')->count();
-                        $offlineCount = $switchgear->sensors->where('status', 'offline')->count();
+                        $first = $switchgearsInPanel->first();
+                        $panelName = $first->panel_name;
+                        $lineup = $first->lineup;
+                        $switchgearCode = $first->switchgear_code;
+
+                        $sensors = $switchgearsInPanel->flatMap->sensors;
+                        $total = $sensors->count();
+                        $online = $sensors->filter(fn($s) => strtolower($s->status) === 'online')->count();
+                        $repairing = $sensors->filter(fn($s) => strtolower($s->status) === 'repairing')->count();
+                        $offline = $sensors->filter(fn($s) => strtolower($s->status) === 'offline')->count();
                     @endphp
-                    <li class="list-group-item">
-                        <strong>{{ $switchgear->panel }}</strong>
-                        <span class="badge bg-secondary ms-2">{{ $switchgear->sensors->count() }} sensors</span>
-                        {{-- <span class="ms-2 small">
-                            <span class="badge bg-success">🟢 {{ $onlineCount }}</span>
-                            <span class="badge bg-warning text-dark">🟠 {{ $repairingCount }}</span>
-                            <span class="badge bg-danger">🔴 {{ $offlineCount }}</span>
-                        </span> --}}
-                        <ul class="ms-3 text-muted small mt-2">
-                            @foreach($switchgear->sensors as $sensor)
-                                <li>
-                                    {{-- <i class="fas fa-circle me-1" style="color: {{ $sensor->status == 'online' ? '#2ecc71' : ($sensor->status == 'repairing' ? '#f39c12' : '#e74c3c') }}"></i> --}}
-                                    {{ $sensor->tag }} – {{ $sensor->type }} – 
-                                    <span class="text-capitalize">{{ $sensor->status }}</span>
-                                </li>
-                            @endforeach
-                        </ul>
-                    </li>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading{{ $panelCode }}">
+                            <button class="accordion-button collapsed" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#collapse{{ $panelCode }}"
+                                aria-expanded="false" aria-controls="collapse{{ $panelCode }}">
+                                <strong>{{ $panelName }} ({{ $panelCode }})</strong>
+                                <span class="ms-3 text-muted small">
+                                    • Lineup: {{ $lineup }} • SWG Code: {{ $switchgearCode }}
+                                </span>
+                                <span class="ms-auto d-flex gap-2">
+                                    <span class="badge bg-secondary">{{ $total }} sensors</span>
+                                    <span class="badge bg-success">🟢 {{ $online }}</span>
+                                    <span class="badge bg-warning text-dark">🟠 {{ $repairing }}</span>
+                                    <span class="badge bg-danger">🔴 {{ $offline }}</span>
+                                </span>
+                            </button>
+                        </h2>
+                        <div id="collapse{{ $panelCode }}" class="accordion-collapse collapse"
+                            aria-labelledby="heading{{ $panelCode }}" data-bs-parent="#panelAccordion">
+                            <div class="accordion-body">
+                                @if($total > 0)
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-bordered align-middle text-center mb-0">
+                                            <thead class="bg-light">
+                                                <tr>
+                                                    <th>Compartment</th>
+                                                    <th>Sensor Type(s)</th>
+                                                    <th>Total</th>
+                                                    <th>🟢 Online</th>
+                                                    <th>🟠 Repairing</th>
+                                                    <th>🔴 Offline</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="bg-white">
+                                                @foreach($sensors->groupBy('compartment') as $compName => $compSensors)
+                                                    @php
+                                                        $typeCounts = $compSensors->groupBy('type')->map->count();
+                                                        $typeDisplay = $typeCounts->map(fn($count, $type) => "{$type} ({$count})")->implode(', ');
+                                                    @endphp
+                                                    <tr>
+                                                        <td>{{ $compName }}</td>
+                                                        <td class="text-muted">{{ $typeDisplay }}</td>
+                                                        <td>{{ $compSensors->count() }}</td>
+                                                        <td><span class="badge bg-success">{{ $compSensors->filter(fn($s) => strtolower($s->status) === 'online')->count() }}</span></td>
+                                                        <td><span class="badge bg-warning text-dark">{{ $compSensors->filter(fn($s) => strtolower($s->status) === 'repairing')->count() }}</span></td>
+                                                        <td><span class="badge bg-danger">{{ $compSensors->filter(fn($s) => strtolower($s->status) === 'offline')->count() }}</span></td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                @else
+                                    <p class="text-muted">No sensors found for this panel.</p>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
                 @endforeach
-            </ul>
+            </div>
         </div>
     </div>
-</div>
 
-
-
-    {{-- Sensor Map --}}
-    <div id="map" class="mb-4"></div>
-    {{-- <div class="legend-box">
-        <div class="legend-item"><span class="legend-color" style="background:#2ecc71"></span>Online</div>
-        <div class="legend-item"><span class="legend-color" style="background:#f39c12"></span>Repairing</div>
-        <div class="legend-item"><span class="legend-color" style="background:#e74c3c"></span>Offline</div>
-    </div> --}}
+    
 
 </div>
+
 @endsection
 
 
@@ -151,6 +259,14 @@
         setTimeout(() => {
             map.invalidateSize();
         }, 500);
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
     });
 </script>
 @endpush
