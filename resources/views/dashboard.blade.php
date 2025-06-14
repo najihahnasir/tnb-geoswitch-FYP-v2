@@ -1,7 +1,7 @@
 @extends('layouts.master') <!-- Extend the base layout -->
 
-@section('title', 'GeoSwitch Dashboard') <!-- Set page title -->
-@section('page-title', 'GeoSwitch Dashboard')
+@section('title', 'TNB-GEOSWICTH DASHBOARD') <!-- Set page title -->
+@section('page-title', 'TNB-GEOSWITCH DASHBOARD')
 
 {{-- @section('breadcrumbs')
 <x-breadcrumbs 
@@ -26,7 +26,7 @@
         grid-template-columns: 1fr;
         gap: 20px;
     }
-    h2 {color: #2c3e50; font-weight: 600; margin-bottom: 20px;}
+    h2 {color: #2c3e50; font-weight: 600; margin-bottom: 30px;}
 
     .chart-card {
         background: white;
@@ -84,7 +84,7 @@
 
     .status-cards {
         display: flex;
-        gap: 16px;
+        gap:1rem;
         margin-bottom: 0; /* Remove space below */
         flex-wrap: wrap;
         /* justify-content: space-between; */
@@ -92,9 +92,11 @@
 
     @media (max-width: 1200px) {
         .status-card {
-            flex: 1 1 calc(50% - 16px); /* 2 cards on smaller desktops */
+            flex: 1 1 48%; /* 2 cards per row */
+            max-width: 48%;
         }
     }
+
 
     @media (max-width: 576px) {
         .status-card {
@@ -104,9 +106,9 @@
     }
         
     .status-card {
-         flex: 1 1 calc(33.333% - 16px); /* 3 cards */
-        min-width: 180px;
-        max-width: calc(33.333% - 16px); /* Ensures 4 cards per row */
+        flex: 1 1 calc(25% - 16px); /* 4 cards per row */
+        min-width: 160px;
+        max-width: calc(25% - 16px);
         background: white;
         padding: 15px;
         border-radius: 8px;
@@ -114,6 +116,17 @@
         transition: all 0.3s ease;
         border-left: 4px solid;
     }
+
+    .col-md-4 {
+    flex: 0 0 24% !important;
+    max-width: 24% !important;
+}
+.col-md-8 {
+    flex: 0 0 75% !important;
+    max-width: 75% !important;c
+}
+
+
     
     .status-card:hover {
         transform: translateY(-3px);
@@ -159,29 +172,27 @@
 
 @section('content')
 
-{{-- @push('global-popup')
-    @include('partial-dashboard.alert-popup')
-@endpush --}}
+<div class="dashboard-intro py-2 px-1 mb-4 rounded shadow-sm bg-white d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center" style="max-width: 98.5%; margin-left: -2px; margin-right: auto;">
+    <div>
+    <h5 class="fw-bold mb-1" style="color: #026670">TNB-GEOSWITCH</h5>
+    <p class="text-muted small mb-0">
+        Welcome back, <span class="d-none d-sm-inline">here’s the latest system status and analytics overview.</span>
+    </p>
+</div>
 
-{{-- @include('partial-dashboard.alert-popup')
-<button onclick="alert('JS works')">Test JS</button>
+    <span class="text-muted small mt-2 mt-md-0">
+        <i class="bi bi-calendar-event me-1"></i>{{ now()->format('l, d M Y') }}
+    </span>
+</div>
 
-TEMPORARY BUTTON FOR TESTING
- <div class="my-3">
-        <button class="btn btn-warning" onclick="document.getElementById('popupOverlay').style.display = 'flex';">
-            TEST SHOW POPUP
-        </button>
-    </div> --}}
-
-{{-- <h2>GeoSwitch Dashboard</h2> --}}
-{{-- <div class="d-flex justify-content-between align-items-center mb-4">
-    <p class="text-muted mb-0 mt-0">Welcome back, here's the latest system status and analytics overview.</p>
-    <span class="text-muted small">{{ now()->format('l, d M Y') }}</span>
-</div> --}}
 <div class="dashboard-container">
     <div class="dashboard-top row">
-        {{-- Right: Status Cards --}}
         <div class="status-cards">
+            <div class="status-card" style="border-left: 4px solid #3F51B5;">
+                <div class="card-value">{{ $severityStats['total'] ?? 0 }}</div>
+                <div class="card-label">Total Sensors</div>
+            </div>
+
             <div onclick="showOnlineSensors()" class="status-card cursor-pointer" style="border-left: 4px solid #4CAF50;">
                 <div class="card-value">{{ $onlineCount ?? 0 }}</div>
                 <div class="card-label">Online Sensors</div>
@@ -196,6 +207,7 @@ TEMPORARY BUTTON FOR TESTING
                 <div class="card-value">{{ $offlineCount ?? 0 }}</div>
                 <div class="card-label">Offline Sensors</div>
             </div>
+
             {{-- <div class="status-card" style="border-left: 4px solid #E67E22;"> 
                 <div class="card-label" style="text-align: center; font-weight: 500; font-size: 14px;">
                     Total Substations with Offline Sensors
@@ -206,24 +218,14 @@ TEMPORARY BUTTON FOR TESTING
             </div> --}}
         </div>
     </div>
-
-    {{-- <pre>{{ json_encode($overviewData, JSON_PRETTY_PRINT) }}</pre> --}}
-
+    
     @include('partial-dashboard.chart')
 
     @include('partial-dashboard.map')
 
-    {{-- @include('partial-dashboard.popup-sensor') --}}
-    {{-- @include('partial-dashboard.popup-sensor', ['substation' => $substation]) --}}
     @foreach($substations as $substation)
         @include('partial-dashboard.popup-sensor', ['substation' => $substation])
     @endforeach
-
-    {{-- @include('partial-dashboard.popup-sensor', ['substation' => $substation]) --}}
-
-
-
-   
 
     <div id="sensor-summary-panel">
         <h4>Sensor Summary</h4>
@@ -234,30 +236,6 @@ TEMPORARY BUTTON FOR TESTING
         <div class="row"><label>Substation:</label><span id="summary-substation">-</span></div>
     </div>
     
-
-     <!-- Charts Section -->
-    {{-- <div class="charts-grid">
-        <div class="chart-container">
-            <h3>Sensor Condition Analytics</h3>
-            <canvas id="sensorConditionChart"></canvas>
-        </div>
-        
-        <div class="chart-container">
-            <h3>Maintenance Analytics</h3>
-            <canvas id="maintenanceChart"></canvas>
-        </div>
-        
-        <div class="chart-container">
-            <h3>Sensor Performance</h3>
-            <canvas id="sensorPerformanceChart"></canvas>
-        </div>
-    </div> --}}
-
-    {{-- Offline Sensor Alert Modal --}}
-    {{-- DEBUG --}}
-{{-- <p>Offline Count: {{ $offlineCount }}</p>
-<pre>{{ print_r($offlineSummary, true) }}</pre> --}}
-
     <div class="modal fade" id="offlineSensorModal" tabindex="-1" aria-labelledby="offlineSensorModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow">
@@ -296,37 +274,10 @@ TEMPORARY BUTTON FOR TESTING
             </div>
         </div>
     </div>
-</div>
-
-
-
-
-
+    </div>
 
 @endsection
 
-{{-- @push('after-scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const popup = document.getElementById('popupOverlay');
-        const offlineCount = {{ $offlineCount }};
-
-        if (popup && offlineCount > 0 && !sessionStorage.getItem('popupDismissed')) {
-            popup.classList.remove('hidden');
-            popup.classList.add('flex');
-        }
-    });
-
-    function closeOfflinePopup() {
-        const popup = document.getElementById('popupOverlay');
-        if (popup) {
-            popup.classList.remove('flex');
-            popup.classList.add('hidden');
-            sessionStorage.setItem('popupDismissed', true);
-        }
-    }
-</script>
-@endpush --}}
 
 @push('after-scripts')
 <!--Leaflet JS -->
@@ -335,19 +286,6 @@ TEMPORARY BUTTON FOR TESTING
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <!-- Include Chart.js for Analytics -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-{{-- <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const offlineCount = {{ $offlineCount }};
-        if (offlineCount > 0 && !sessionStorage.getItem('sensorAlertDismissed')) {
-            const modal = new bootstrap.Modal(document.getElementById('offlineSensorModal'));
-            modal.show();
-
-            document.getElementById('offlineSensorModal')
-                .addEventListener('hidden.bs.modal', () => sessionStorage.setItem('sensorAlertDismissed', true));
-        }
-    });
-</script> --}}
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -361,467 +299,5 @@ TEMPORARY BUTTON FOR TESTING
         }
     });
 </script>
-
-
-{{-- 
-<script>
-    window.addEventListener('DOMContentLoaded', function () {
-        const offlineCount = {{ $offlineCount }};
-        if (offlineCount > 0 && !sessionStorage.getItem('popupDismissed')) {
-            document.getElementById('offlineSensorPopup').style.display = 'block';
-        }
-    });
-
-    function closeOfflinePopup() {
-        document.getElementById('offlineSensorPopup').style.display = 'none';
-        sessionStorage.setItem('popupDismissed', true);
-    }
-</script> --}}
-
-{{-- alert --}}
-{{-- <script>
-    window.addEventListener('DOMContentLoaded', function () {
-        const popupOverlay = document.getElementById('popupOverlay');
-        const popup = document.getElementById('offlineSensorPopup');
-
-        console.log("Popup script running. Offline count: {{ $offlineCount }}");
-
-        if (!popup) {
-            console.warn("Popup element NOT FOUND in DOM");
-        } else {
-            console.log("Popup element FOUND in DOM");
-        }
-
-        if (popupOverlay && !sessionStorage.getItem('popupDismissed')) {
-            popupOverlay.style.display = 'flex'; // make sure overlay is visible
-            console.log("Popup displayed.");
-        }
-    });
-
-    function closeOfflinePopup() {
-        const popupOverlay = document.getElementById('popupOverlay');
-        if (popupOverlay) {
-            popupOverlay.style.display = 'none';
-            sessionStorage.setItem('popupDismissed', true);
-        }
-    }
-</script> --}}
-
-
-
-
-{{-- latest script map --}}
-{{-- <script>
-    var map = L.map('map').setView([3.1390, 101.6869], 11);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 18,
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
-    
-    //substations passed array from controller
-    var substations = @json($substations ?? []);
-    var markers = [];
-    const sensors = @json($sensors ?? []);
-    let sensorMarkers = [];
-    let selectedTypes = []; // All selected by default
-    let statusCounts = { online: 0, repairing: 0, offline: 0, unknown: 0 };
-    let selectedStatus = 'ALL';
-
-    // Get color based on status
-    function getStatusColor(status) {
-        switch ((status || '').toLowerCase()) {
-            case 'online': return '#2ecc71';    // green
-            case 'repairing': return '#f39c12'; // orange
-            case 'offline': return '#e74c3c';   // red
-            default: return '#3498db';          // blue fallback
-        }
-    }
-
-    // Update status cards
-    function updateStatusCards() {
-        document.getElementById('normal-count').textContent = statusCounts.online || 0;
-        document.getElementById('await-count').textContent = statusCounts.repairing || 0;
-        document.getElementById('alarm-count').textContent = statusCounts.offline || 0;
-    }
-
-    function updateLegend() {
-        const legend = document.getElementById('legend-items');
-        legend.innerHTML = '';
-
-        const statuses = {
-        'online':   { color: '#2ecc71', label: 'Online' },
-        'repairing':{ color: '#f39c12', label: 'Repairing' },
-        'offline':  { color: '#e74c3c', label: 'Offline' },
-        'unknown':  { color: '#3498db', label: 'Unknown' }
-    };
-
-        Object.entries(statuses).forEach(([status, { color, label }]) => {
-            const count = statusCounts[status] || 0;
-            if (count > 0) {
-                const item = document.createElement('div');
-                item.className = 'legend-item';
-                item.innerHTML = `
-                    <span class="legend-color" style="background: ${color}"></span>
-                    <span>${label} (${count})</span>
-                `;
-                legend.appendChild(item);
-            }
-        });
-    }
-
-    function updateSensorSummaryPanel(sensor) {
-        document.getElementById('summary-tag').textContent = sensor.tag || '-';
-        document.getElementById('summary-type').textContent = sensor.type || '-';
-        document.getElementById('summary-status').textContent = sensor.latest_measurement?.status || '-';
-        document.getElementById('summary-panel').textContent = sensor.switchgear?.panel || '-';
-        document.getElementById('summary-substation').textContent = sensor.switchgear?.substation?.substation_name || '-';
-
-        document.getElementById('sensor-summary-panel').classList.add('active');
-    }
-
-    function renderSensorMarkers(substationName, selectedTypes) {
-        sensorMarkers.forEach(marker => map.removeLayer(marker));
-        sensorMarkers = [];
-        statusCounts = { ALARM: 0, AWAIT: 0, NORMAL: 0, UNKNOWN: 0 };
-
-        console.log("🧭 Selected Substation:", substationName);
-        console.log("📦 Selected Sensor Types:", selectedTypes);
-
-        sensors.forEach(sensor => {
-            const switchgear = sensor.switchgear;
-            const sub = switchgear?.substation;
-
-            if (!sub || !switchgear) {
-                console.warn("⚠️ Missing switchgear or substation:", sensor);
-                return;
-            }
-
-            const type = sensor.type;
-            // const status = sensor.latest_measurement?.status || 'UNKNOWN'.toUpperCase();
-            const status = (sensor.status || 'unknown').toLowerCase();
-            // Count status regardless of filters
-            statusCounts[status] = (statusCounts[status] || 0) + 1;
-
-            const matchSubstation = substationName === 'all' ||
-                sub.substation_name.trim().toLowerCase() === substationName.trim().toLowerCase();
-            
-            const matchType = selectedTypes.includes('ALL') ||
-                selectedTypes.includes(type);
-
-            console.log(` Sensor [${sensor.tag}] — Type: ${type}, Status: ${status}`);
-            console.log(` Substation: ${sub.substation_name}`);
-            console.log(` Match Substation: ${matchSubstation}, Match Type: ${matchType}`);
-
-            const matchStatus = selectedStatus === 'ALL' || status === selectedStatus;
-
-            if (matchSubstation && matchType && matchStatus) {
-                const latNum = parseFloat(sub.latitude);
-                const lngNum = parseFloat(sub.longitude);
-
-                if (isNaN(latNum) || isNaN(lngNum)) {
-                    console.warn(`Invalid lat/lng for substation: ${sub.substation_name}`, sub.latitude, sub.longitude);
-                    return;
-                }
-
-                const offsetLat = +(latNum + (Math.random() - 0.5) * 0.0003).toFixed(6);
-                const offsetLng = +(lngNum + (Math.random() - 0.5) * 0.0003).toFixed(6);
-
-                const marker = L.circleMarker([offsetLat, offsetLng], {
-                    radius: 10,
-                    color: getStatusColor(status),
-                    fillColor: getStatusColor(status),
-                    fillOpacity: 0.8,
-                    weight: 2,
-                    className: `sensor-marker ${status === 'ALARM' ? 'sensor-alarm' : ''}`
-                }).on('click', () => {
-                    updateSensorSummaryPanel(sensor);
-                }).bindPopup(`
-                    <b>${sensor.tag || 'Sensor'}</b><br>
-                    Type: ${type || 'N/A'}<br>
-                    Status: ${status}<br>
-                    Panel: ${switchgear.panel || 'N/A'}<br>
-                    Substation: ${sub.substation_name}
-                `);
-
-                marker.addTo(map);
-                sensorMarkers.push(marker);
-            } else {
-                console.log(` Skipped - does not match filters.`);
-            }
-        });
-
-        updateStatusCards();
-        updateLegend();
-
-        if (sensorMarkers.length > 0) {
-            map.fitBounds(L.featureGroup(sensorMarkers).getBounds(), { padding: [40, 40] });
-        } else {
-            console.warn("📭 No matching sensors to display.");
-        }
-        // Initialize on DOM load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Count all sensors initially
-            sensors.forEach(sensor => {
-                const status = (sensor.latest_measurement?.status || 'UNKNOWN').toUpperCase();
-                statusCounts[status] = (statusCounts[status] || 0);
-            });
-            updateStatusCards();
-            console.table(statusCounts); // for visual table in console
-
-            updateLegend();
-        });
-    }
-
-    // Sensor type checkbox filters
-    document.querySelectorAll('.sensor-filter').forEach(cb => {
-        cb.addEventListener('change', function () {
-            selectedTypes = Array.from(document.querySelectorAll('.sensor-filter:checked')).map(cb => cb.value);
-            const selectedSubstation = document.getElementById('substationFilter').value;
-            renderSensorMarkers(selectedSubstation, selectedTypes);
-        });
-    });
-
-    //to render markers on map
-    function renderMarkers(data) {
-        markers.forEach(marker => map.removeLayer(marker));
-        markers = [];
-
-        data.forEach(sub => {
-            const sensorCount = sensors.filter(s => s.switchgear?.substation?.substation_name === sub.substation_name).length;
-            const marker = createSubstationMarker(
-                parseFloat(sub.latitude),
-                parseFloat(sub.longitude),
-                sub.substation_name,
-                sub.substation_location,
-                sensorCount
-            ).addTo(map);
-
-            markers.push(marker);
-        });
-    }
-
-    function createSubstationMarker(lat, lng, name, location, sensorCount) {
-        return L.marker([lat, lng], {
-            icon: new L.Icon.Default()
-        }).bindPopup(`<b>${name}</b><br>${location}<br><small>Sensors: ${sensorCount}</small>`);
-    }
-
-    renderMarkers(substations);
-    renderSensorMarkers('all', selectedTypes);
-
-    // filter logic
-    document.getElementById('substationFilter').addEventListener('change', function () {
-        var selected = this.value;
-        if (selected === 'all') {
-            renderMarkers(substations);
-            map.setView([3.1390, 101.6869], 11); // reset to default
-        } else {
-            var filtered = substations.filter(substation => substation.substation_name === selected);
-            renderMarkers(filtered);
-            if (filtered.length > 0) {
-                map.setView([filtered[0].latitude, filtered[0].longitude], 14);
-            }
-        }
-    });
-
-    // Status filter dropdown
-    document.getElementById('statusFilter').addEventListener('change', function () {
-        selectedStatus = this.value;
-        const selectedSubstation = document.getElementById('substationFilter').value;
-        renderSensorMarkers(selectedSubstation, selectedTypes);
-    });
-
-    // renderSubstations(substations);
-    setTimeout(() => {
-        map.invalidateSize();
-    }, 500);
-
-</script> --}}
-
-
-
-
-
-{{-- chart script --}}
-{{-- <script>
-    // Function to initialize charts with responsive settings
-    function initializeCharts() {
-        // Destroy existing charts if they exist
-        if (window.sensorConditionChart) window.sensorConditionChart.destroy();
-        if (window.maintenanceChart) window.maintenanceChart.destroy();
-        if (window.sensorPerformanceChart) window.sensorPerformanceChart.destroy();
-
-        // Chart 1: Sensor Condition Analytics (Doughnut)
-        const sensorConditionCtx = document.getElementById('sensorConditionChart').getContext('2d');
-        window.sensorConditionChart = new Chart(sensorConditionCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Normal', 'Warning', 'Alarm', 'Offline'],
-                datasets: [{
-                    data: [65, 15, 10, 10], // Replace with actual data from API
-                    backgroundColor: [
-                        '#2ecc71', // Normal - green
-                        '#f39c12', // Warning - orange
-                        '#e74c3c', // Alarm - red
-                        '#95a5a6'  // Offline - gray
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                    },
-                    title: {
-                        display: false
-                    }
-                },
-                cutout: '70%'
-            }
-        });
-
-        // Chart 2: Maintenance Analytics (Bar)
-        const maintenanceCtx = document.getElementById('maintenanceChart').getContext('2d');
-        window.maintenanceChart = new Chart(maintenanceCtx, {
-            type: 'bar',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                datasets: [{
-                    label: 'Maintenance Activities',
-                    data: [12, 19, 8, 15, 10, 7], // Replace with actual data
-                    backgroundColor: '#3498db',
-                    borderColor: '#2980b9',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-
-        // Chart 3: Sensor Performance (Line)
-        const performanceCtx = document.getElementById('sensorPerformanceChart').getContext('2d');
-        window.sensorPerformanceChart = new Chart(performanceCtx, {
-            type: 'line',
-            data: {
-                labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
-                datasets: [{
-                    label: 'Performance Index',
-                    data: [85, 79, 82, 81, 86, 83],
-                    fill: false,
-                    backgroundColor: '#9b59b6',
-                    borderColor: '#9b59b6',
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: false,
-                        min: 70,
-                        max: 100
-                    }
-                }
-            }
-        });
-    }
-
-    // Function to fetch chart data from API
-    async function fetchChartData() {
-        try {
-            // Example API calls - replace with your actual endpoints
-            const [conditionData, maintenanceData, performanceData] = await Promise.all([
-                fetch('/api/sensor-condition').then(res => res.json()),
-                fetch('/api/maintenance').then(res => res.json()),
-                fetch('/api/sensor-performance').then(res => res.json())
-            ]);
-            
-            // Update charts with real data
-            updateChartsWithData(conditionData, maintenanceData, performanceData);
-        } catch (error) {
-            console.error('Error fetching chart data:', error);
-            // Initialize with default data if API fails
-            initializeCharts();
-        }
-    }
-
-    // Function to update charts with fetched data
-    function updateChartsWithData(conditionData, maintenanceData, performanceData) {
-        // Update Sensor Condition Chart
-        window.sensorConditionChart.data.datasets[0].data = [
-            conditionData.normal || 0,
-            conditionData.warning || 0,
-            conditionData.alarm || 0,
-            conditionData.offline || 0
-        ];
-        window.sensorConditionChart.update();
-
-        // Update Maintenance Chart
-        window.maintenanceChart.data.labels = maintenanceData.labels || [];
-        window.maintenanceChart.data.datasets[0].data = maintenanceData.values || [];
-        window.maintenanceChart.update();
-
-        // Update Performance Chart
-        window.sensorPerformanceChart.data.labels = performanceData.labels || [];
-        window.sensorPerformanceChart.data.datasets[0].data = performanceData.values || [];
-        window.sensorPerformanceChart.update();
-    }
-
-    // Initialize charts when page loads
-    document.addEventListener('DOMContentLoaded', function() {
-        initializeCharts();
-        // Uncomment to fetch real data
-        // fetchChartData();
-        
-        // Handle window resize to maintain chart responsiveness
-        window.addEventListener('resize', function() {
-            if (window.sensorConditionChart) window.sensorConditionChart.resize();
-            if (window.maintenanceChart) window.maintenanceChart.resize();
-            if (window.sensorPerformanceChart) window.sensorPerformanceChart.resize();
-        });
-    });
-
-    // Make sure charts resize properly within their containers
-    function handleChartResize() {
-        const chartContainers = document.querySelectorAll('.chart-container');
-        chartContainers.forEach(container => {
-            const canvas = container.querySelector('canvas');
-            if (canvas) {
-                canvas.style.width = '100%';
-                canvas.style.height = '100%';
-            }
-        });
-
-        if (window.sensorConditionChart) window.sensorConditionChart.resize();
-        if (window.maintenanceChart) window.maintenanceChart.resize();
-        if (window.sensorPerformanceChart) window.sensorPerformanceChart.resize();
-    }
-
-    // Call this after any layout changes that might affect chart containers
-    setTimeout(handleChartResize, 100);
-</script> --}}
-
 
 @endpush

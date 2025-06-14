@@ -313,31 +313,31 @@
         <div class="row"><label>Substation:</label><span id="summary-substation">-</span></div>
     </div> --}}
     <div id="sensor-summary-panel">
-    <button class="close-btn" id="summary-close-btn" style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; font-size: 18px; cursor: pointer;">✖</button>
-    
-    <h4 style="margin-bottom: 20px; font-size: 16px; font-weight: 600; color: #333;">Sensor Summary</h4>
+        <button class="close-btn" id="summary-close-btn" style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; font-size: 18px; cursor: pointer;">✖</button>
+        
+        <h4 style="margin-bottom: 20px; font-size: 16px; font-weight: 600; color: #333;">Sensor Summary</h4>
 
-    <div class="summary-row">
-        <label>Tag:</label>
-        <span id="summary-tag">-</span>
+        <div class="summary-row">
+            <label>Tag:</label>
+            <span id="summary-tag">-</span>
+        </div>
+        <div class="summary-row">
+            <label>Type:</label>
+            <span id="summary-type">-</span>
+        </div>
+        <div class="summary-row">
+            <label>Status:</label>
+            <span id="summary-status" class="badge-status">-</span>
+        </div>
+        <div class="summary-row">
+            <label>Panel:</label>
+            <span id="summary-panel">-</span>
+        </div>
+        <div class="summary-row">
+            <label>Substation:</label>
+            <span id="summary-substation">-</span>
+        </div>
     </div>
-    <div class="summary-row">
-        <label>Type:</label>
-        <span id="summary-type">-</span>
-    </div>
-    <div class="summary-row">
-        <label>Status:</label>
-        <span id="summary-status" class="badge-status">-</span>
-    </div>
-    <div class="summary-row">
-        <label>Panel:</label>
-        <span id="summary-panel">-</span>
-    </div>
-    <div class="summary-row">
-        <label>Substation:</label>
-        <span id="summary-substation">-</span>
-    </div>
-</div>
 
 </div>
 
@@ -429,7 +429,7 @@
             document.getElementById('summary-tag').textContent = sensor.tag || '-';
             document.getElementById('summary-type').textContent = sensor.type || '-';
             document.getElementById('summary-status').textContent = sensor.status || '-';
-            document.getElementById('summary-panel').textContent = sensor.switchgear?.panel || '-';
+            document.getElementById('summary-panel').textContent = sensor.switchgear?.panel_name || '-';
             document.getElementById('summary-substation').textContent = sensor.switchgear?.substation?.substation_name || '-';
 
             document.getElementById('sensor-summary-panel').classList.add('active');
@@ -516,9 +516,9 @@
                         <b>${sensor.tag || 'Sensor'}</b><br>
                         Type: ${type || 'N/A'}<br>
                         Status: ${status}<br>
-                        Panel: ${switchgear?.panel || 'N/A'}<br>
-                        Substation: ${sub?.substation_name || 'N/A'}
-                    `);
+                        Panel: ${sensor.switchgear?.panel_name || 'N/A'}<br>
+                        Substation: ${sensor.switchgear?.substation?.substation_name || 'N/A'}
+                        `);
                     marker.addTo(map);
                     sensorMarkers.push(marker);
                 }

@@ -6,23 +6,36 @@
         width: 100% !important;
         height: 100% !important;
     }
+
+    /* Tighter column layout */
+    .col-md-8,
     .col-md-4 {
-        flex: 0 0 30%;
-        max-width: 30%;
+        padding-left: 8px;
+        padding-right: 8px;
     }
-    .col-md-8 {
-        flex: 0 0 66%;
-        max-width: 66%;
+
+    .row.align-items-start {
+        margin-left: -8px;
+        margin-right: -8px;
+        display: flex;
+        gap: 0px !important; /* 🧩 Force tight columns */
     }
+
+    .chart-card, .chart-box {
+        margin-bottom: 0;
+        padding: 12px;
+    }
+
     @media (max-width: 768px) {
-        .col-md-4,
-        .col-md-8 {
+        .col-md-8,
+        .col-md-4 {
             flex: 0 0 100%;
             max-width: 100%;
         }
     }
 </style>
 @endpush
+
 <div class="row align-items-start mb-0" style="margin-top: 0px;">
     <!-- LEFT: Bar Chart -->
     <div class="col-md-8 ">
@@ -49,7 +62,7 @@
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <h5 class="chart-title mb-0">Sensor Severity</h5>
             </div>
-            <div style="position: relative; height: 235px; width: 100%;">
+            <div style="position: relative; height: 235px; width: 90%;">
                 <canvas id="severityChart"></canvas>
             </div>
         </div>
