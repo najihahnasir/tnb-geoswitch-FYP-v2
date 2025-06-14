@@ -7,18 +7,23 @@
 <div class="container py-4" style="background-color: #f8f9fa; border-radius: 8px;">
     {{-- Summary Badges --}}
     {{-- Overview Header Row --}}
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-        <div class="d-flex flex-wrap gap-3 align-items-center">
-            <h5 class="mb-0 text-dark">
-                <i class="fas fa-bolt me-2 text-primary"></i>Substation Overview:
-            </h5>
-            <span class="badge bg-success">Total Substations: {{ count($substations) }}</span>
+    <div class="d-flex justify-content-between align-items-center flex-wrap my-3 px-1">
+        <div class="d-flex align-items-center gap-2">
+            <i class="fas fa-bolt text-primary"></i>
+            <span class="fw-semibold">Substation Overview:</span>
+            <span class="badge bg-success">Total Substations: {{ $substations->count() }}</span>
         </div>
-        
-        <a href="{{ route('substations.summaryPdf') }}" class="btn btn-danger">
-            <i class="fas fa-file-pdf me-1"></i> Download PDF
-        </a>
+
+        <div class="d-flex gap-2 mt-2 mt-md-0">
+            <a href="{{ route('substations.summaryPdf') }}" class="btn btn-danger btn-sm">
+                <i class="fas fa-file-pdf me-1"></i> Download PDF
+            </a>
+            <a href="{{ route('substations.summaryCsv') }}" class="btn btn-success btn-sm">
+                <i class="fas fa-file-csv me-1"></i> Export CSV
+            </a>
+        </div>
     </div>
+
 
 
     {{-- Filter Panel --}}
@@ -33,11 +38,11 @@
             <div class="card-body">
                 <form method="GET" action="{{ route('substations.summary') }}" class="row g-3">
                     <div class="col-md-4">
-                        <label for="type" class="form-label">Substation Type</label>
-                        <select name="type" id="type" class="form-select">
+                        <label for="code_prefix" class="form-label">Substation Code Prefix</label>
+                        <select name="code_prefix" id="code_prefix" class="form-select">
                             <option value="">All Types</option>
-                            <option value="PPU">PPU</option>
-                            <option value="SSU">SSU</option>
+                            <option value="PPU" {{ request('code_prefix') == 'PPU' ? 'selected' : '' }}>PPU</option>
+                            <option value="SSU" {{ request('code_prefix') == 'SSU' ? 'selected' : '' }}>SSU</option>
                         </select>
                     </div>
                     <div class="col-md-4">
