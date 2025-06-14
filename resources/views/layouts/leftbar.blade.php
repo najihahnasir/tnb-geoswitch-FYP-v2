@@ -85,6 +85,14 @@
                                 <span class="hide-menu">Register New Sensor</span>
                             </a>
                         </li>
+                    </ul>
+                </li>
+                <li class="sidebar-item">
+                    <a class="sidebar-link waves-effect waves-dark has-arrow" href="#" aria-expanded="false" data-bs-toggle="collapse" data-bs-target="#sensorSummaryMenu">
+                        <i class="ri-folder-shared-line"></i>
+                        <span class="hide-menu">Sensor Log Reports</span>
+                    </a>
+                    <ul aria-expanded="false" class="collapse first-level" id="sensorSummaryMenu">
                         <li class="sidebar-item">
                             <a href="{{ route('log-reports.index') }}" class="sidebar-link">
                                 <i class="ri-file-upload-line"></i>
@@ -94,7 +102,7 @@
                         <li class="sidebar-item">
                             <a href="{{ route('log-reports.create') }}" class="sidebar-link">
                                 <i class="ri-file-upload-line"></i>
-                                <span class="hide-menu">Create Sensor Report </span>
+                                <span class="hide-menu">Submit Sensor Case</span>
                             </a>
                         </li>
                         {{-- <li class="sidebar-item">
@@ -125,6 +133,12 @@
                                 <span class="hide-menu">Sensor Analytics</span>
                             </a>
                         </li>
+                         {{-- <li class="sidebar-item">
+                            <a href="{{ route('analytics.index') }}" class="sidebar-link">
+                                <i class="mdi mdi-adjust"></i>
+                                <span class="hide-menu">Index Analytics</span>
+                            </a>
+                        </li> --}}
                     </ul>
                 </li>
 
@@ -184,9 +198,9 @@
 
                 <!-- Example of a single menu item -->
                 <li class="sidebar-item">
-                    <a class="sidebar-link waves-effect waves-dark" href="#" aria-expanded="false">
+                    <a class="sidebar-link waves-effect waves-dark" href="{{ route('about') }}">
                         <i class="ri-book-2-line"></i>
-                        <span class="hide-menu">Manage Account</span>
+                        <span class="hide-menu">About</span>
                     </a>
                 </li>
             </ul>
