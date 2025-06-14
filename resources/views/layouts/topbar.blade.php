@@ -158,7 +158,7 @@
                 </li> --}}
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle waves-effect waves-dark pro-pic" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/images/users/default.jpg') }}" 
+                        <img src="{{ asset('images/pfp.png')  }}"
                              alt="user" class="rounded-circle" width="40">
                         <span class="ms-1 font-weight-medium d-none d-sm-inline-block">
                             {{ Auth::user()->name }} 
@@ -168,7 +168,9 @@
                     <div class="dropdown-menu dropdown-menu-end user-dd animated flipInY">
                         <div class="d-flex no-block align-items-center p-3 bg-light-orange text-dark mb-2">
                             <div class="">
-                                <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/images/users/default.jpg') }}" 
+                                {{-- <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/images/pfp.png') }}" 
+                                     alt="user" class="rounded-circle" width="60"> --}} 
+                                     <img src="{{ asset('images/pfp.png')  }}" 
                                      alt="user" class="rounded-circle" width="60">
                             </div>
                             <div class="ms-2">

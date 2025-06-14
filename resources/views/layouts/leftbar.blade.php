@@ -68,11 +68,11 @@
 
                 <!-- Example of a single menu item -->
                 <li class="sidebar-item">
-                    <a class="sidebar-link waves-effect waves-dark has-arrow" href="#" aria-expanded="false" data-bs-toggle="collapse" data-bs-target="#sensorSummaryMenu">
+                    <a class="sidebar-link waves-effect waves-dark has-arrow" href="#" aria-expanded="false" data-bs-toggle="collapse" data-bs-target="#sensorMenu">
                         <i class="ri-folder-shared-line"></i>
                         <span class="hide-menu">Sensor</span>
                     </a>
-                    <ul aria-expanded="false" class="collapse first-level" id="sensorSummaryMenu">
+                    <ul aria-expanded="false" class="collapse first-level" id="sensorMenu">
                         <li class="sidebar-item">
                             <a href="{{ route('sensors.index') }}" class="sidebar-link">
                                 <i class="ri-file-upload-line"></i>
@@ -87,12 +87,13 @@
                         </li>
                     </ul>
                 </li>
+
                 <li class="sidebar-item">
-                    <a class="sidebar-link waves-effect waves-dark has-arrow" href="#" aria-expanded="false" data-bs-toggle="collapse" data-bs-target="#sensorSummaryMenu">
+                    <a class="sidebar-link waves-effect waves-dark has-arrow" href="#" aria-expanded="false" data-bs-toggle="collapse" data-bs-target="#logReportMenu">
                         <i class="ri-folder-shared-line"></i>
                         <span class="hide-menu">Sensor Log Reports</span>
                     </a>
-                    <ul aria-expanded="false" class="collapse first-level" id="sensorSummaryMenu">
+                    <ul aria-expanded="false" class="collapse first-level" id="logReportMenu">
                         <li class="sidebar-item">
                             <a href="{{ route('log-reports.index') }}" class="sidebar-link">
                                 <i class="ri-file-upload-line"></i>
@@ -105,12 +106,6 @@
                                 <span class="hide-menu">Submit Sensor Case</span>
                             </a>
                         </li>
-                        {{-- <li class="sidebar-item">
-                            <a href="{{ route('log-reports.editStatus', $report->id) }}" class="sidebar-link">
-                                <i class="ri-file-upload-line"></i>
-                                <span class="hide-menu">Edit Sensor Status Offline </span>
-                            </a>
-                        </li> --}}
                     </ul>
                 </li>
 
