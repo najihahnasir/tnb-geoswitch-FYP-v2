@@ -131,6 +131,12 @@ class DashboardController extends Controller
                 'panel' => $sensor->switchgear->panel ?? 'Unknown',
                 'lat' => $sensor->latitude ?? $sensor->switchgear->latitude,
                 'lng' => $sensor->longitude ?? $sensor->switchgear->longitude,
+                'switchgear' => [
+                    'panel_name' => $sensor->switchgear->panel_name,
+                    'substation' => [
+                        'substation_name' => $sensor->switchgear->substation->substation_name
+                    ]
+                ]
             ];
         });
 
