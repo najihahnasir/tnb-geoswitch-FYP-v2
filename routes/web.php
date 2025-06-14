@@ -29,6 +29,9 @@ Route::get('/datasets/upload', [DatasetController::class, 'showUploadForm'])->na
 Route::post('/datasets/upload', [DatasetController::class, 'handleUpload'])->name('datasets.upload');
 Route::resource('academicians', AcademicianController::class);
 
+Route::get('/about', function () {
+    return view('about');
+})->name('about');
 
 Route::prefix('reports')->group(function () {
     Route::get('/', [ReportController::class, 'index'])->name('reports.index');
@@ -38,7 +41,8 @@ Route::prefix('reports')->group(function () {
         ->name('reports.sensor-status');
     Route::get('/analytics/export', [ReportController::class, 'exportSensorAnalytics'])->name('analytics.export');
 });
-// Route::resource('sensors', SensorController::class)->middleware('auth');
+
+Route::post('/sensors/upload', [SensorController::class, 'upload'])->name('sensors.upload');
 Route::resource('sensors', SensorController::class);
 
 Route::get('/api/switchgears/by-substation/{substation}', function ($substationId) {
@@ -48,6 +52,10 @@ Route::get('/api/switchgears/by-substation/{substation}', function ($substationI
 //     return \App\Models\Switchgear::where('substation_id', $id)->get(['id', 'panel', 'latitude', 'longitude']);
 // });
 
+//sensor pdf + csv report
+Route::get('/sensors/export/{format}', [App\Http\Controllers\SensorController::class, 'export'])->name('sensors.export');
+Route::get('/sensors/{id}/export-logs/{format}', [SensorController::class, 'exportLogs'])->name('sensors.exportLogs');
+
 
 // Route::get('/sensors/manage', [\App\Http\Controllers\SensorController::class, 'man'])->name('sensors.view');
 Route::get('/sensors/manage/{sensor}', [SensorController::class, 'show'])->name('sensors.view');
@@ -56,6 +64,7 @@ Route::get('/sensors/manage/{sensor}', [SensorController::class, 'show'])->name(
 // Route::get('/analytics', [AnalyticsController::class, 'substations'])->name('analytics.substations');
 Route::get('/analytics/substations', [AnalyticsController::class, 'substation'])->name('analytics.substations');
 Route::get('/analytics/sensors', [SensorAnalyticsController::class, 'index'])->name('analytics.sensors');
+Route::get('/analytics', [SensorAnalyticsController::class, 'index'])->name('analytics.index');
 
 // All fixed substation routes
 Route::get('/substations/summary', [SubstationController::class, 'summary'])->name('substations.summary');
@@ -65,6 +74,7 @@ Route::get('/substations/export-summary-pdf', [SubstationController::class, 'sum
 //Export individual substation profile as PDF
 Route::get('/substations/{substation}/export-pdf', [SubstationController::class, 'exportPdf'])
     ->name('substations.exportPdf');
+Route::get('/substations/export-summary-csv', [SubstationController::class, 'summaryCsv'])->name('substations.summaryCsv');
 
 // Resource route
 Route::resource('substations', SubstationController::class);
@@ -91,6 +101,8 @@ Route::get('/log-reports/create', [LogReportController::class, 'create'])->name(
 Route::post('/log-reports', [LogReportController::class, 'store'])->name('log-reports.store');
 Route::get('/log-reports/{logReport}', [LogReportController::class, 'show'])->name('log-reports.show');
 Route::post('/log-reports/{logReport}/resolve', [LogReportController::class, 'resolve'])->name('log-reports.resolve');
+Route::get('/log-reports/export/pdf', [LogReportController::class, 'exportPdf'])->name('log-reports.exportPdf');
+Route::get('/log-reports/export/csv', [LogReportController::class, 'exportCsv'])->name('log-reports.exportCsv');
 
 
 
