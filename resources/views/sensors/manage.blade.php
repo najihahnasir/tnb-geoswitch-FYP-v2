@@ -92,8 +92,18 @@
 
     {{-- Sensor Table Card --}}
     <div class="card shadow-sm">
-        <div class="card-header bg-white fw-semibold">
-            <i class="fas fa-table me-2"></i>Sensor Table
+        <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center px-3 py-2">
+            <div>
+                <i class="fas fa-table me-2"></i>Sensor Table
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ route('sensors.export', ['format' => 'pdf']) }}" class="btn btn-danger btn-sm">
+                    <i class="fas fa-file-pdf me-1"></i> Export PDF
+                </a>
+                <a href="{{ route('sensors.export', ['format' => 'csv']) }}" class="btn btn-success btn-sm">
+                    <i class="fas fa-file-csv me-1"></i> Export CSV
+                </a>
+            </div>
         </div>
         <div class="card-body table-responsive">
             <table class="table table-hover table-striped align-middle" id="sensorTable">
@@ -105,7 +115,12 @@
                         <th>Substation Name</th>
                         <th>Switchgear Panel</th>
                         <th>Status</th>
-                        <th>Created At</th>
+                        {{-- <th>Created At</th> --}}
+                        {{-- <th>Report At</th> --}}
+                        @if(in_array(request('filter'), ['offline', 'repairing']))
+                            <th>Report At</th>
+                        @endif
+
                         <th>Updated At</th>
                         @if(in_array(request('filter'), ['offline', 'repairing']))
                             <th>Downtime Duration</th>
@@ -138,7 +153,16 @@
                                 {{ ucfirst($status) }}
                             </span>
                         </td>
-                        <td>{{ $sensor->created_at->format('Y-m-d H:i') }}</td>
+                        {{-- <td>{{ $sensor->created_at->format('Y-m-d H:i') }}</td> --}}
+                        
+                        {{-- <td>
+                            {{ $sensor->latestLogReport?->reported_at ? $sensor->latestLogReport->reported_at->format('Y-m-d H:i') : '-' }}
+                        </td> --}}
+                        @if(in_array(request('filter'), ['offline', 'repairing']))
+                            <td>
+                                {{ $sensor->latestLogReport?->reported_at ? $sensor->latestLogReport->reported_at->format('Y-m-d H:i') : '-' }}
+                            </td>
+                        @endif
                         <td>{{ $sensor->updated_at->format('Y-m-d H:i') }}</td>
                         @if(in_array(request('filter'), ['offline', 'repairing']))
                             <td>

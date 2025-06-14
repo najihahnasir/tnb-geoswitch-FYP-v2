@@ -9,18 +9,25 @@ class Sensor extends Model
     protected $fillable = [
         'substation_id',
         'switchgear_id',
+        'tag',
+        'type',
+        'status',
+        'brand_name',
+        'sku',
+        'warranty',
+        'status_changed_at',
+        
+        // Log/reporting-related fields
         'sensor_id',
         'reported_by',
         'title',
         'description',
-        'status',
         'reported_at',
         'resolved_at',
         'remark',
         'old_status',
         'new_status',
         'status_changed_by',
-        'status_changed_at',
         'downtime_duration',
     ];
 
@@ -80,18 +87,26 @@ class Sensor extends Model
     }
 
     // Accessor for the "status" attribute
-    public function getStatusAttribute($value)
-    {
-        return ucfirst($value); // online → Online, offline → Offline
-    }
+    // public function getStatusAttribute($value)
+    // {
+    //     return ucfirst($value); // online → Online, offline → Offline
+    // }
 
     // Accessor for the "type" attribute
-    public function getTypeAttribute($value)
+    // public function getTypeAttribute($value)
+    // {
+    //     return match ($value) {
+    //         'thermal' => 'Thermal',
+    //         'partial_discharge' => 'Partial Discharge',
+    //         default => ucfirst($value),
+    //     };
+    // }
+    public function getFormattedTypeAttribute()
     {
-        return match ($value) {
+        return match ($this->attributes['type']) {
             'thermal' => 'Thermal',
             'partial_discharge' => 'Partial Discharge',
-            default => ucfirst($value),
+            default => ucfirst($this->attributes['type']),
         };
     }
 

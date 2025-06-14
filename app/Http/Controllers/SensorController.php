@@ -8,97 +8,14 @@ use App\Models\Substation;
 use App\Models\SensorStatusHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Response;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 
 class SensorController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    // public function index(Request $request)
-    // {
-    //     $query = Sensor::with('switchgear.substation');
-    //     if ($request->has('filter') && in_array($request->filter, ['online', 'offline', 'repairing'])) {
-    //         $query->where('status', $request->filter);
-    //     }
-    //     $sensors = Sensor::with('switchgear.substation')->paginate(20);
-    //     return view('sensors.manage', compact('sensors'));
-    // }
-
-    // public function index(Request $request)
-    // {
-    //     $filter = $request->input('filter'); 
-
-    //     $query = Sensor::with('switchgear.substation');
-
-    //     if (in_array($filter, ['online', 'offline', 'repairing'])) {
-    //         $query->where('status', $filter);
-    //     }
-
-    //     $sensors = $query->paginate(20); 
-
-    //     return view('sensors.manage', compact('sensors', 'filter'));
-    // }
-
-    // latest to refer
-    // public function index(Request $request)
-    // {
-    //     $sensors = Sensor::with(['switchgear.substation', 'latestLogReport'])->get();
-
-    //     $filter = $request->input('filter');
-    //     $substationId = $request->input('substation');
-    //     $sensorTag = $request->input('sensor');
-    //     $sensorType = $request->input('type');
-
-    //     $onlineCount = Sensor::where('status', 'online')->count();
-    //     $repairingCount = Sensor::where('status', 'repairing')->count();
-    //     $offlineCount = Sensor::where('status', 'offline')->count();
-
-    //     $substationName = $request->input('substation');
-        
-
-    //     $query = Sensor::with('switchgear.substation');
-
-    //     if (in_array($filter, ['online', 'offline', 'repairing'])) {
-    //         $query->where('status', $filter);
-    //     }
-
-    //     // if ($substationId) {
-    //     //     $query->whereHas('switchgear.substation', function ($q) use ($substationId) {
-    //     //         $q->where('id', $substationId);
-    //     //     });
-    //     // }
-
-    //     if ($substationName) {
-    //         $query->whereHas('switchgear.substation', function ($q) use ($substationName) {
-    //             $q->where('substation_name', $substationName);
-    //         });
-    //     }
-
-    //     if ($sensorTag) {
-    //         $query->where('tag', 'like', '%' . $sensorTag . '%');
-    //     }
-
-    //     if ($sensorType) {
-    //         $query->where('type', $sensorType);
-    //     }
-
-    //     $sensors = $query->paginate(10);
-    //     $substations = \App\Models\Substation::all(); // ✅ Add this
-    //     $sensorTypes = Sensor::select('type')->distinct()->pluck('type');
-
-    //     return view('sensors.manage', compact(
-    //         'sensors', 
-    //         'filter', 
-    //         'substations', 
-    //         'substationId', 
-    //         'sensorTag', 
-    //         'sensorTypes',
-    //         'onlineCount',
-    //         'repairingCount',
-    //         'offlineCount'
-    //     ));
-    // }
     public function index(Request $request)
     {
         $filter = $request->input('filter');
@@ -126,7 +43,8 @@ class SensorController extends Controller
             $query->where('type', $sensorType);
         }
 
-        $sensors = $query->paginate(10);
+        // $sensors = $query->paginate(10);
+        $sensors = $query->orderBy('updated_at', 'desc')->paginate(10);
 
         $substations = \App\Models\Substation::all();
         $sensorTypes = Sensor::select('type')->distinct()->pluck('type');
@@ -134,12 +52,6 @@ class SensorController extends Controller
         $onlineCount = Sensor::where('status', 'online')->count();
         $repairingCount = Sensor::where('status', 'repairing')->count();
         $offlineCount = Sensor::where('status', 'offline')->count();
-
-        // dd([
-        //     'online' => $onlineCount,
-        //     'repairing' => $repairingCount,
-        //     'offline' => $offlineCount,
-        // ]);
 
         return view('sensors.manage', compact(
             'sensors',
@@ -160,9 +72,21 @@ class SensorController extends Controller
      */
     public function create()
     {
-        $substations = Substation::with('switchgears')->get(); // no need for sensors
-        return view('sensors.create', compact('substations'));
+        $substations = Substation::with('switchgears')->get();
+        $selectedSubstation = null;
+        $selectedSwitchgear = null;
+
+        if (old('substation_id')) {
+            $selectedSubstation = Substation::with('switchgears')->find(old('substation_id'));
+        }
+
+        if (old('switchgear_id')) {
+            $selectedSwitchgear = \App\Models\Switchgear::find(old('switchgear_id'));
+        }
+
+        return view('sensors.create', compact('substations', 'selectedSubstation', 'selectedSwitchgear'));
     }
+
 
 
     /**
@@ -170,8 +94,115 @@ class SensorController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'switchgear_id' => 'required|exists:switchgears,id',
+            'type' => 'required|in:Partial Discharge,Thermal',
+            'status' => 'required|in:online,offline,repairing',
+            'brand_name' => 'nullable|string|max:255',
+            'sku' => 'nullable|string|max:255',
+            'warranty' => 'nullable|string|max:255',
+        ]);
+
+        // ✅ Load switchgear with substation
+        $switchgear = \App\Models\Switchgear::with('substation')->findOrFail($request->switchgear_id);
+
+        // ✅ Get parts for sensor tag
+        $substationCode = strtoupper($switchgear->substation->code ?? 'N/A');
+        $sensorTypeCode = $request->type === 'Partial Discharge' ? 'PD' : 'TH';
+        $panelCode = strtoupper($switchgear->panel_code ?? 'PNL'); // <== here
+        $compartmentCode = strtoupper($switchgear->compartment_code ?? 'CMP'); // <== here
+
+        // ✅ Build the tag prefix
+        $prefix = "{$substationCode}_{$sensorTypeCode}_{$panelCode}_{$compartmentCode}_";
+
+        // ✅ Find the last tag used with same prefix
+        $latestTag = \App\Models\Sensor::where('tag', 'like', $prefix . '%')
+            ->orderBy('tag', 'desc')
+            ->pluck('tag')
+            ->first();
+
+        $nextNumber = 1;
+        if ($latestTag) {
+            $lastParts = explode('_', $latestTag);
+            $lastIncrement = intval(end($lastParts));
+            $nextNumber = $lastIncrement + 1;
+        }
+
+        $generatedTag = $prefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT); // e.g. _001
+
+        // ✅ Store new sensor
+        Sensor::create([
+            'switchgear_id' => $request->switchgear_id,
+            'tag' => $generatedTag,
+            'type' => $request->type,
+            'status' => $request->status,
+            'brand_name' => $request->brand_name,
+            'sku' => $request->sku,
+            'warranty' => $request->warranty,
+            'status_changed_at' => now(),
+        ]);
+
+        return redirect()->route('sensors.create')->with('success', "Sensor registered with tag: $generatedTag");
     }
+
+    public function upload(Request $request)
+    {
+        $request->validate([
+            'csv_file' => 'required|mimes:csv,txt',
+        ]);
+
+        $file = $request->file('csv_file');
+        $data = array_map('str_getcsv', file($file));
+        // $header = array_map('trim', $data[0]);
+        $header = array_map(fn($h) => trim(str_replace("\u{FEFF}", '', $h)), $data[0]);
+        $requiredHeaders = ['switchgear_id', 'tag', 'type', 'status'];
+
+        foreach ($requiredHeaders as $col) {
+            if (!in_array($col, $header)) {
+                return redirect()->back()->with('error', "Missing required column: $col");
+            }
+        }
+
+        $created = 0;
+        foreach (array_slice($data, 1) as $row) {
+            $rowData = array_combine($header, $row);
+
+            // Skip if required fields are missing
+            if (empty($rowData['switchgear_id']) || empty($rowData['tag'])) {
+                continue;
+            }
+
+            // Prevent duplicates
+            if (Sensor::where('tag', $rowData['tag'])->exists()) {
+                continue;
+            }
+
+            try {
+                Sensor::create([
+                    'switchgear_id' => $rowData['switchgear_id'],
+                    'tag'           => $rowData['tag'],
+                    'type'          => $rowData['type'] ?? 'Thermal',
+                    'status'        => $rowData['status'] ?? 'online',
+                    'brand_name'    => $rowData['brand_name'] ?? null,
+                    'sku'           => $rowData['sku'] ?? null,
+                    'warranty'      => $rowData['warranty'] ?? null,
+                    'status_changed_at' => now(),
+                ]);
+                $created++;
+            } catch (\Exception $e) {
+                dd('Failed to insert sensor:', $rowData, $e->getMessage());
+            }
+
+        }
+        
+        // foreach (array_slice($data, 1) as $row) {
+        //     $rowData = array_combine($header, $row);
+        //     dd($rowData);  // 🧪 Debug right here
+        // }
+
+        return redirect()->route('sensors.create')->with('success', "$created sensors uploaded successfully.");
+    }
+
 
     /**
      * Display the specified resource.
@@ -195,30 +226,6 @@ class SensorController extends Controller
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    // public function update(Request $request, Sensor $sensor)
-    // {
-    //     $request->validate([
-    //         'status' => 'required|in:online,offline,repairing'
-    //     ]);
-    
-    //     // Record the status change
-    //     SensorStatusHistory::create([
-    //         'sensor_id' => $sensor->id,
-    //         'user_id' => Auth::id(),
-    //         'old_status' => $sensor->status,
-    //         'new_status' => $request->status,
-    //     ]);
-    
-    //     // Update sensor status
-    //     $sensor->status = $request->status;
-    //     $sensor->save();
-    
-    //     return redirect()->back()->with('success', 'Sensor status updated successfully.');
-    // }
-    // Example: updating status change info in updateStatus method
     public function updateStatus(Request $request, $id)
     {
         $report = SensorLogReport::with('sensor')->findOrFail($id);
@@ -251,13 +258,94 @@ class SensorController extends Controller
                         ->with('success', 'Sensor status updated successfully.');
     }
 
-    
-
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(Sensor $sensor)
     {
         //
+    }
+
+    public function export(Request $request, $format)
+    {
+        $sensors = Sensor::with(['switchgear.substation', 'latestLogReport'])->get();
+
+        if ($format === 'csv') {
+            $filename = 'sensor_status_summary.csv';
+
+            $response = new \Symfony\Component\HttpFoundation\StreamedResponse(function () use ($sensors) {
+                $handle = fopen('php://output', 'w');
+
+                // Header row
+                fputcsv($handle, ['Tag', 'Type', 'Substation', 'Panel', 'Status', 'Reported At', 'Updated At']);
+
+                foreach ($sensors as $sensor) {
+                    fputcsv($handle, [
+                        $sensor->tag,
+                        ucfirst($sensor->type),
+                        optional($sensor->switchgear->substation)->substation_name ?? '-',
+                        $sensor->switchgear->panel_name ?? '-',
+                        ucfirst($sensor->status),
+                        $sensor->latestLogReport?->reported_at 
+                            ? $sensor->latestLogReport->reported_at->format('Y-m-d H:i') 
+                            : 'N/A',
+                        $sensor->updated_at->format('Y-m-d H:i'),
+                    ]);
+                }
+
+                fclose($handle);
+            });
+
+            $response->headers->set('Content-Type', 'text/csv');
+            $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
+
+            return $response;
+        }
+
+        if ($format === 'pdf') {
+            $pdf = Pdf::loadView('sensors.pdf-summary', compact('sensors'));
+            return $pdf->download('sensor_status_summary.pdf');
+        }
+
+        return redirect()->back()->with('error', 'Invalid export format selected.');
+    }
+
+    public function exportLogs($id, $format)
+    {
+        $sensor = Sensor::with(['switchgear.substation', 'logReports.reporter'])->findOrFail($id);
+
+        if ($format === 'csv') {
+            $filename = "sensor_logs_{$sensor->tag}.csv";
+
+            $response = new StreamedResponse(function () use ($sensor) {
+                $handle = fopen('php://output', 'w');
+
+                // Header row
+                fputcsv($handle, ['Case ID', 'Reported By', 'Status', 'Reported At', 'Resolved At', 'Downtime']);
+
+                foreach ($sensor->logReports as $report) {
+                    fputcsv($handle, [
+                        $report->case_id,
+                        optional($report->reporter)->name ?? '-',
+                        ucfirst($report->status),
+                        $report->reported_at?->format('Y-m-d H:i') ?? '-',
+                        $report->resolved_at?->format('Y-m-d H:i') ?? '-',
+                        $report->status === 'open' ? 'In Progress' : ($report->calculated_duration ?? '-'),
+                    ]);
+                }
+
+                fclose($handle);
+            });
+
+            $response->headers->set('Content-Type', 'text/csv');
+            $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
+            return $response;
+        }
+
+        if ($format === 'pdf') {
+            return \PDF::loadView('sensors.log-pdf', compact('sensor'))->download("sensor_logs_{$sensor->tag}.pdf");
+        }
+
+        return redirect()->back()->with('error', 'Invalid export format.');
     }
 }
