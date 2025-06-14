@@ -50,9 +50,10 @@ class SensorAnalyticsController extends Controller
             return collect($group)
                 ->groupBy('type')
                 ->map(function ($typedGroup) {
-                    return $typedGroup->groupBy('status')
-                        ->map->count();
-                });
+                return $typedGroup
+                    ->groupBy(fn($s) => ucfirst(strtolower($s->status)))
+                    ->map->count();
+            });
         });
 
         $totalSensorsBySub = Sensor::with('switchgear.substation')
@@ -93,8 +94,7 @@ class SensorAnalyticsController extends Controller
             )
             ->orderByRaw('YEAR(sensor_log_reports.reported_at), MONTH(sensor_log_reports.reported_at)')
             ->get();
-
-        $range = $request->input('range');
+            $range = $request->input('range');
 
         if ($range === 'rolling') {
             $startDate = now()->subMonths(11)->startOfMonth();
@@ -107,17 +107,43 @@ class SensorAnalyticsController extends Controller
 
         // 🔹 Offline Sensors Count - Add this after the above query
         $offlineSensors = DB::table('sensor_log_reports')
-            ->join('sensors', 'sensor_log_reports.sensor_id', '=', 'sensors.id')
-            ->where('sensor_log_reports.new_status', 'offline')
-            ->when($sensorType, fn($q) => $q->where('sensors.type', $sensorType))
-            ->when($substationId, fn($q) => $q->whereHas('switchgear', function($q) use ($substationId) {
-                $q->where('substation_id', $substationId);
-            }))
-            ->count();
+        ->join('sensors', 'sensor_log_reports.sensor_id', '=', 'sensors.id')
+        ->join('switchgears', 'sensors.switchgear_id', '=', 'switchgears.id')
+        ->where('sensor_log_reports.new_status', 'offline')
+        ->when($sensorType, fn($q) => $q->where('sensors.type', $sensorType))
+        ->when($substationId, fn($q) => $q->where('switchgears.substation_id', $substationId)) // ✅ fixed here
+        ->count();
 
-        // Rest of your controller code remains the same...
-        $sensorTypes = Sensor::select('type')->distinct()->pluck('type');
         $substations = Substation::with('switchgears.sensors')->get();
+
+        $sensorSummary = $substations->map(function ($sub) {
+        $totals = [];
+
+        foreach (['Thermal', 'Partial Discharge'] as $type) {
+            $count = $sub->switchgears->flatMap->sensors
+                ->filter(fn($s) => $s->type === $type)
+                ->count();
+
+            $totals[$type] = $count;
+        }
+
+        return [
+            'substation' => $sub->substation_name,
+            'data' => $totals
+        ];
+    });
+
+
+
+        // $sensorTypes = Sensor::select('type')->distinct()->pluck('type');
+        $sensorTypes = Sensor::select('type')->distinct()->pluck('type')->map(function ($type) {
+            return match ($type) {
+                'thermal' => 'Thermal',
+                'partial_discharge' => 'Partial Discharge',
+                default => ucfirst($type),
+            };
+        });
+
 
         // 🔹 Donut Chart Data (Status Distribution)
         $statusData = $filteredSensors->groupBy('status')->map(function ($group, $status) {
@@ -182,7 +208,9 @@ class SensorAnalyticsController extends Controller
             'offlineCount',
             'latestStatusSummary',
             'totalSensorsBySub',
-            'failureMeta'
+            'failureMeta',
+            'sensorSummary',
+            'substations',
             // 'sensorFailureTable',
             // 'groupedFailureTable'   
         ));

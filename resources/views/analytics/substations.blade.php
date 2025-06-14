@@ -115,6 +115,7 @@
     </form>
 
     <!-- Chart Section -->
+    <!-- Top row: 2 side-by-side charts -->
     <div class="row g-4">
         <div class="col-md-6">
             <div class="card shadow-sm p-3">
@@ -124,7 +125,6 @@
                 </div>
             </div>
         </div>
-
         <div class="col-md-6">
             <div class="card shadow-sm p-3">
                 <h6 class="card-title">📈 Uptime % Over Time</h6>
@@ -133,17 +133,46 @@
                 </div>
             </div>
         </div>
+    </div>
 
+    <!-- Downtime Full Width -->
+    <div class="row g-4 mt-2">
         <div class="col-md-12">
             <div class="card shadow-sm p-3">
-                <h6 class="card-title">🚨 Top Problematic Sensors</h6>
-                <small class="text-muted">Showing top 5 offline sensors from Jan to Dec {{ now()->year }}</small>
-                <div class="chart-container" style="width: 100%;">
-                    <canvas id="topProblemChart"></canvas>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="card-title mb-0">📉 Downtime Trend per Substation</h6>
+                    <small class="text-muted">🔴 indicates peak downtime in the year</small>
+                    <form method="GET" class="d-flex align-items-center gap-2">
+                        <label class="form-label mb-0 small">Filter:</label>
+                        <select name="limit" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                            <option value="">All Substations</option>
+                            <option value="5" {{ request('limit') == 5 ? 'selected' : '' }}>Top 5</option>
+                            <option value="10" {{ request('limit') == 10 ? 'selected' : '' }}>Top 10</option>
+                        </select>
+                    </form>
+                </div>
+                <div class="chart-container d-flex justify-content-center" style="height: 420px; padding-inline: 10px;">
+                    <div style="width: 95%;">
+                        <canvas id="downtimeTrendChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Top Problematic Sensors (half width) -->
+    {{-- <div class="row g-4 mt-2">
+        <div class="col-md-6">
+            <div class="card shadow-sm p-3">
+                <h6 class="card-title">🚨 Top Problematic Sensors</h6>
+                <small class="text-muted">Showing top 5 offline sensors from Jan to Dec {{ now()->year }}</small>
+                <div class="chart-container" style="height: 400px;">
+                    <canvas id="topProblemChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div> --}}
+
 </div>
 @endsection
 
@@ -219,5 +248,77 @@
             }
         }
     });
+
+    //downtime chart
+    const ctx = document.getElementById('downtimeTrendChart').getContext('2d');
+    const downtimeTrendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {!! json_encode($allMonths) !!},
+            datasets: {!! json_encode($downtimeTrend) !!}
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: '📊 Monthly Downtime (in Minutes) by Substation – 2025'
+                },
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 12,
+                        font: { size: 10 }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            const label = context.dataset.label || '';
+                            const value = context.raw;
+                            const hours = Math.floor(value / 60);
+                            const minutes = Math.round(value % 60);
+                            const allData = context.chart.data.datasets.flatMap(d => d.data);
+                            const peak = Math.max(...allData);
+                            const isPeak = value === peak;
+
+                            return `${label}: ${hours}h ${minutes}m${isPeak ? ' 🌟 Peak' : ''}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Downtime (Minutes)'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return value + ' mins';
+                        }
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Month'
+                    }
+                }
+            }
+        }
+    });
+    // 🔴 Highlight Peak Value with Red Dot
+    const peakValue = Math.max(...downtimeTrendChart.data.datasets.flatMap(d => d.data));
+
+    downtimeTrendChart.data.datasets = downtimeTrendChart.data.datasets.map(dataset => ({
+        ...dataset,
+        pointBackgroundColor: dataset.data.map(v => v === peakValue ? 'red' : 'blue'),
+        pointRadius: dataset.data.map(v => v === peakValue ? 7 : 3)
+    }));
+
+    downtimeTrendChart.update();
 </script>
+    
 @endpush

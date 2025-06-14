@@ -15,7 +15,6 @@
         font-weight: 600;
     }
 </style>
-{{-- <pre>{{ dd($sensorFailureTable) }}</pre> --}}
 
 <div class="container my-2">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -131,7 +130,7 @@
     <div class="row g-3 mt-1">
         <!-- 🔻 Failure Frequency -->
         <div class="col-md-8">
-            <div class="card shadow-sm p-3">
+            <div class="card shadow-sm p-2">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <h6 class="card-title mb-0">⚠️ Failure Frequency</h6>
                     <select id="substationScope" class="form-select form-select-sm w-auto">
@@ -157,7 +156,7 @@
         </div>
     </div>
 
-    <div class="row g-3 mt-1">
+    {{-- <div class="row g-3 mt-1">
         <div class="col-12">
             <div class="card shadow-sm p-3">
                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -189,7 +188,7 @@
             </div>
         </div>
        
-    </div>
+    </div> --}}
 </div>
 
 
@@ -249,20 +248,24 @@
 </script>
 
 <!-- Substation Analytics Blade Chart Script -->
-@php
+{{-- @php
     $sensorSummary = $substations->map(function ($sub) use ($sensorTypes) {
         $totals = [];
         foreach ($sensorTypes as $type) {
-            $totals[$type] = $sub->switchgears->flatMap->sensors
-                ->where('type', $type)
+            $count = $sub->switchgears->flatMap->sensors
+                ->filter(fn($s) => $s->formatted_type === $type)
                 ->count();
+
+            $totals[$type] = $count;
         }
         return [
             'substation' => $sub->substation_name,
             'data' => $totals
         ];
     });
-@endphp
+@endphp --}}
+
+
 
 <script>
     const statusData = @json($statusData);
@@ -359,13 +362,6 @@
                 },
                 tooltip: {
                     callbacks: {
-                        // label: ctx => {
-                        //     const count = ctx.raw;
-                        //     const total = totalSensorsBySub[ctx.label] || 0;
-                        //     const percent = total ? ((count / total) * 100).toFixed(1) : 0;
-                        //     const last = failureMeta[ctx.label] || 'N/A';
-                        //     return ` ${count} failures (${percent}%)\nLast Failure: ${last}`;
-                        // }
                         label: ctx => {
                             const count = ctx.raw;
                             const label = ctx.label;
@@ -473,9 +469,9 @@
         'Offline': '#dc3545',    // Red
         'Repairing': '#ffc107'   // Yellow
     };
-
     const ctx = document.getElementById('statusChart').getContext('2d');
-    new Chart(ctx, {
+
+    const statusChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: statusData.map(s => s.status),
@@ -486,12 +482,36 @@
         },
         options: {
             responsive: true,
+            animation: {
+                duration: 500, // 🔥 force animation so onComplete is called
+                onComplete: function () {
+                    const chart = this;
+                    const { ctx, chartArea: { left, right, top, bottom } } = chart;
+                    const x = (left + right) / 2;
+                    const y = (top + bottom) / 2;
+
+                    const total = chart.data.datasets[0].data.reduce((sum, val) => sum + val, 0);
+                    ctx.save();
+                    ctx.font = 'bold 18px Arial';
+                    ctx.fillStyle = '#333';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(`Total: ${total}`, x, y);
+                    ctx.restore();
+                }
+            },
             plugins: {
-                title: { display: true, text: 'Sensor Status Distribution' },
-                legend: { position: 'bottom' }
+                title: {
+                    display: true,
+                    text: 'Sensor Status Distribution'
+                },
+                legend: {
+                    position: 'bottom'
+                }
             }
         }
     });
+
 
     // Total Sensors by Type per Substation
     // Sensor Status by Type per Substation (DYNAMIC using histories)
@@ -499,18 +519,19 @@
     const statuses = ['Online', 'Repairing', 'Offline']; // ✅ Exact match
     const colors = {
         Online: {
-            PD: '#198754',       // Green
-            Thermal: '#0d6efd'   // Blue
+            Thermal: '#0d6efd',            // Blue
+            'Partial Discharge': '#2ecc71'// Green
         },
         Repairing: {
-            PD: '#ffc107',       // Yellow
-            Thermal: '#fd7e14'   // Orange
+            Thermal: '#fd7e14',            // Orange
+            'Partial Discharge': '#f39c12'// Amber
         },
         Offline: {
-            PD: '#dc3545',       // Red
-            Thermal: '#6f42c1'   // Purple
+            Thermal: '#6f42c1',            // Purple
+            'Partial Discharge': '#e74c3c'// Red
         }
     };
+
 
 
     const statusChartSubstations = Object.keys(latestStatusSummary);
@@ -575,46 +596,6 @@
             }
         }
     });
-
-
-    // Failure Frequency Horizontal Bar Chart
-    // const failureRawData = failureData.labels.map((label, i) => ({ label, value: failureData.data[i] }));
-    // const failureChartRef = new Chart(document.getElementById('failureChart'), {
-    //     type: 'bar',
-    //     data: {
-    //         labels: failureRawData.map(d => d.label),
-    //         datasets: [{
-    //             label: 'Offline Failures',
-    //             data: failureRawData.map(d => d.value),
-    //             backgroundColor: '#dc3545'
-    //         }]
-    //     },
-    //     options: {
-    //         indexAxis: 'y',
-    //         responsive: true,
-    //         plugins: {
-    //             title: { display: true, text: 'Failure Frequency per Substation' }
-    //         },
-    //         scales: {
-    //             x: { beginAtZero: true, title: { display: true, text: 'Failure Count' } },
-    //             y: { title: { display: true, text: 'Substation' } }
-    //         }
-    //     }
-    // });
-
-
-    // document.getElementById('failureFilter').addEventListener('change', function () {
-    //     let filtered = [...failureRawData];
-    //     const val = this.value;
-    //     if (val === 'top5') {
-    //         filtered = filtered.sort((a, b) => b.value - a.value).slice(0, 5);
-    //     } else if (val === 'withOffline') {
-    //         filtered = filtered.filter(d => d.value > 0);
-    //     }
-    //     failureChartRef.data.labels = filtered.map(d => d.label);
-    //     failureChartRef.data.datasets[0].data = filtered.map(d => d.value);
-    //     failureChartRef.update();
-    // });
 
     // Yearly Trend Chart
     new Chart(document.getElementById('trendChart'), {

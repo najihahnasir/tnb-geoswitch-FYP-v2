@@ -22,5 +22,9 @@ class Substation extends Model
         return $this->hasManyThrough(Sensor::class, Switchgear::class);
     }
 
+    public function latestLogReport()
+    {
+        return $this->hasOne(SensorLogReport::class)->latestOfMany();
+    }
 
 }
