@@ -27,7 +27,8 @@
 
             <div class="mb-3">
                 <label for="code" class="form-label">Code</label>
-                <input type="text" class="form-control" id="code" name="code" value="{{ 'TEMP_' . \Str::random(10) }}" readonly>
+                <input type="text" class="form-control" id="code" name="code" 
+                    value="{{ old('code') ?? 'AUTO_GENERATED' }}" readonly>
             </div>
 
             <div class="mb-3">
@@ -73,3 +74,14 @@
     </div>
 </div>
 @endsection
+@push('after-script')
+<script>
+    document.getElementById('substation_name').addEventListener('input', function () {
+        let name = this.value.trim().toUpperCase();
+        let prefix = name.includes('PMU') ? 'PMU' : 'PPU';
+        let parts = name.split(' ');
+        let suffix = parts[parts.length - 1].replace(/\s+/g, '_');
+        document.getElementById('code').value = prefix + '_' + suffix;
+    });
+</script>
+@endpush
