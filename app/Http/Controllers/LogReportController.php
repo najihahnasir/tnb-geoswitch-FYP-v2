@@ -10,80 +10,98 @@ use App\Models\SensorLogReport;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class LogReportController extends Controller
 {
     public function index(Request $request)
-{
-    $query = SensorLogReport::with([
-        'substation',
-        'switchgear',
-        'sensor',
-        'reporter',
-        'statusChanger'
-    ]);
+    {
+        $query = SensorLogReport::with([
+            'substation',
+            'switchgear',
+            'sensor',
+            'reporter',
+            'statusChanger'
+        ]);
 
-    // ✅ Filter by Substation (optional)
-    if ($request->filled('substation')) {
-        $query->where('substation_id', $request->substation);
-    }
-
-    // ✅ Filter by Case Status (open/closed)
-    if ($request->filled('status')) {
-        $query->where('status', $request->status);
-    }
-
-    // ✅ Filter by Sensor Status (online/repairing/offline)
-    if ($request->filled('new_status')) {
-        $query->where('new_status', $request->new_status);
-    }
-
-    // ✅ Filter by Month
-    if ($request->filled('month')) {
-        $query->whereMonth('reported_at', $request->month);
-    }
-
-    // ✅ Paginate and sort
-    $reports = $query->latest('reported_at')->paginate(10);
-
-    // ✅ Calculate fallback duration
-    foreach ($reports as $report) {
-        if ($report->reported_at) {
-            $endTime = $report->resolved_at ?? now(); // Use now() for OPEN cases
-            $diff = $report->reported_at->diff($endTime);
-
-            $label = is_null($report->resolved_at) ? 'LIVE – ' : ''; // Tag open cases
-            $report->calculated_duration = $label . $diff->days . 'd ' . $diff->h . 'h ' . $diff->i . 'm';
-        } else {
-            $report->calculated_duration = '-';
+        // ✅ Filter by Substation (optional)
+        if ($request->filled('substation')) {
+            $query->where('substation_id', $request->substation);
         }
+
+        // ✅ Filter by Case Status (open/closed)
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // ✅ Filter by Sensor Status (online/repairing/offline)
+        if ($request->filled('new_status')) {
+            $query->where('new_status', $request->new_status);
+        }
+
+        //Filter by Month
+        if ($request->filled('month')) {
+            $query->whereMonth('reported_at', $request->month);
+        }
+
+        // Paginate and sort
+        $reports = $query->latest('reported_at')->paginate(10);
+
+        // Calculate fallback duration
+        foreach ($reports as $report) {
+            if ($report->reported_at) {
+                $endTime = $report->resolved_at ?? now(); // For open cases
+                $diff = $report->reported_at->diff($endTime);
+
+                $label = is_null($report->resolved_at) ? 'IN PROGRESS – ' : ''; 
+                $report->calculated_duration = $label . $diff->days . 'd ' . $diff->h . 'h ' . $diff->i . 'm ' . $diff->s . 's'; // ✅ Include seconds
+            }else {
+                $report->calculated_duration = '-';
+            }
+        }
+
+
+        // For filter dropdowns
+        $substations = Substation::all();
+        $statuses = ['open', 'closed'];
+        $sensorStatuses = ['online', 'repairing', 'offline'];
+        $months = SensorLogReport::selectRaw('MONTH(reported_at) as month')
+            ->distinct()
+            ->pluck('month');
+
+        return view('log-reports.index', compact(
+            'reports',
+            'substations',
+            'statuses',
+            'sensorStatuses',
+            'months'
+        ));
     }
 
-
-    // ✅ For filter dropdowns
-    $substations = Substation::all();
-    $statuses = ['open', 'closed'];
-    $sensorStatuses = ['online', 'repairing', 'offline'];
-    $months = SensorLogReport::selectRaw('MONTH(reported_at) as month')
-        ->distinct()
-        ->pluck('month');
-
-    return view('log-reports.index', compact(
-        'reports',
-        'substations',
-        'statuses',
-        'sensorStatuses',
-        'months'
-    ));
-}
-
-
-
-    public function create()
+    public function create(Request $request)
     {
         $substations = Substation::with('switchgears.sensors')->get();
 
-        return view('log-reports.create', compact('substations'));
+        $sensorId = $request->query('sensor_id');
+        $selectedSensor = null;
+        $selectedSubstation = null;
+        $selectedSwitchgear = null;
+
+        if ($sensorId) {
+            $selectedSensor = Sensor::with('switchgear.substation')->find($sensorId);
+            if ($selectedSensor) {
+                $selectedSwitchgear = $selectedSensor->switchgear;
+                $selectedSubstation = $selectedSwitchgear->substation;
+            }
+        }
+
+        return view('log-reports.create', compact(
+            'substations',
+            'selectedSensor',
+            'selectedSwitchgear',
+            'selectedSubstation'
+        ));
     }
 
     public function store(Request $request)
@@ -128,7 +146,6 @@ class LogReportController extends Controller
 
         return redirect()->route('log-reports.index')->with('success', 'Sensor issue reported successfully.');
     }
-
 
     public function show(SensorLogReport $logReport)
     {
@@ -213,8 +230,8 @@ class LogReportController extends Controller
             $report->resolved_at = now();
         }
 
-        // 🟡 Calculate downtime duration if applicable
-        // ✅ Always calculate downtime duration when timestamps are available
+        // Calculate downtime duration if applicable
+        // Always calculate downtime duration when timestamps are available
         // if ($report->reported_at && $sensor->status_changed_at) {
         //     $diff = $report->reported_at->diff($sensor->status_changed_at);
         //     $report->downtime_duration = $diff->days . 'd ' . $diff->h . 'h ' . $diff->i . 'm';
@@ -232,4 +249,153 @@ class LogReportController extends Controller
 
         return redirect()->route('sensors.show', $sensor->id)->with('success', 'Sensor status updated and report resolved.');
     }
+
+    public function syncOfflineReports()
+    {
+        $created = 0;
+        $closed = 0;
+
+        // Part 1: Add missing reports for offline sensors
+        $offlineSensors = \App\Models\Sensor::where('status', 'offline')->get();
+
+        foreach ($offlineSensors as $sensor) {
+            if (!$sensor->latestLogReport || $sensor->latestLogReport->status !== 'open') {
+                \App\Models\SensorLogReport::create([
+                    'sensor_id'     => $sensor->id,
+                    'substation_id' => $sensor->switchgear->substation_id ?? null,
+                    'switchgear_id' => $sensor->switchgear_id,
+                    'reported_at'   => now(),
+                    'status'        => 'open',
+                    'new_status'    => 'offline',
+                    'reported_by'   => 1, // make sure this user exists
+                    'description'   => 'Auto-generated report for offline sensor',
+                ]);
+                $created++;
+            }
+        }
+
+        // Part 2: Auto-close reports if sensor is no longer offline
+        $openOfflineReports = \App\Models\SensorLogReport::where('status', 'open')
+            ->where('new_status', 'offline')
+            ->get();
+
+        foreach ($openOfflineReports as $report) {
+            if ($report->sensor && $report->sensor->status !== 'offline') {
+                $report->update([
+                    'status'      => 'closed',
+                    'resolved_at' => now(),
+                    'remarks'     => 'Auto-closed as sensor is no longer offline'
+                ]);
+                $closed++;
+            }
+        }
+
+        return response()->json([
+            'reports_created' => $created,
+            'reports_closed' => $closed
+        ]);
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $query = SensorLogReport::with(['substation', 'sensor', 'switchgear', 'reporter']);
+
+        if ($request->filled('substation')) {
+            $query->where('substation_id', $request->substation);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('new_status')) {
+            $query->where('new_status', $request->new_status);
+        }
+
+        if ($request->filled('month')) {
+            $query->whereMonth('reported_at', $request->month);
+        }
+
+        $reports = $query->latest('reported_at')->get();
+
+        // Apply calculated duration
+        foreach ($reports as $report) {
+            $endTime = $report->resolved_at ?? now();
+            if ($report->reported_at) {
+                $diff = $report->reported_at->diff($endTime);
+                $label = is_null($report->resolved_at) ? 'IN PROGRESS – ' : '';
+                $report->calculated_duration = $label . $diff->days . 'd ' . $diff->h . 'h ' . $diff->i . 'm ' . $diff->s . 's';
+            } else {
+                $report->calculated_duration = '-';
+            }
+        }
+
+        $pdf = Pdf::loadView('log-reports.pdf-summary', compact('reports'));
+        return $pdf->download('sensor_log_summary.pdf');
+    }
+
+    public function exportCsv(Request $request)
+    {
+        $query = SensorLogReport::with(['substation', 'sensor', 'switchgear', 'reporter']);
+
+        if ($request->filled('substation')) {
+            $query->where('substation_id', $request->substation);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('new_status')) {
+            $query->where('new_status', $request->new_status);
+        }
+
+        if ($request->filled('month')) {
+            $query->whereMonth('reported_at', $request->month);
+        }
+
+        $reports = $query->latest('reported_at')->get();
+
+        // Apply calculated duration
+        foreach ($reports as $report) {
+            $endTime = $report->resolved_at ?? now();
+            if ($report->reported_at) {
+                $diff = $report->reported_at->diff($endTime);
+                $label = is_null($report->resolved_at) ? 'IN PROGRESS – ' : '';
+                $report->calculated_duration = $label . $diff->days . 'd ' . $diff->h . 'h ' . $diff->i . 'm ' . $diff->s . 's';
+            } else {
+                $report->calculated_duration = '-';
+            }
+        }
+
+        $filename = 'sensor_log_summary.csv';
+
+        $response = new StreamedResponse(function () use ($reports) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['Case ID', 'Substation', 'Panel', 'Sensor Tag', 'Status', 'Report Date', 'Resolved Time', 'Downtime', 'Reported By']);
+
+            foreach ($reports as $report) {
+                fputcsv($handle, [
+                    $report->case_id,
+                    optional($report->substation)->substation_name,
+                    optional($report->switchgear)->panel_name,
+                    optional($report->sensor)->tag,
+                    ucfirst($report->new_status),
+                    optional($report->reported_at)?->format('Y-m-d H:i'),
+                    optional($report->resolved_at)?->format('Y-m-d H:i'),
+                    $report->calculated_duration,
+                    optional($report->reporter)->name
+                ]);
+            }
+
+            fclose($handle);
+        });
+
+        $response->headers->set('Content-Type', 'text/csv');
+        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
+
+        return $response;
+    }
+
+
 }

@@ -78,23 +78,36 @@
     </div>
     
     {{-- index summary table  --}}
-    <div class="card shadow-sm">
+   <div class="card shadow-sm">
+        <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-table me-2"></i>Log Index Table</span>
+            <div class="d-flex gap-2">
+                <a href="{{ route('log-reports.exportPdf') }}" class="btn btn-danger btn-sm">
+                    <i class="fas fa-file-pdf me-1"></i> Export PDF
+                </a>
+                <a href="{{ route('log-reports.exportCsv') }}" class="btn btn-success btn-sm">
+                    <i class="fas fa-file-csv me-1"></i> Export CSV
+                </a>
+            </div>
+        </div>
         <div class="card-body table-responsive">
-            <table class="table table-bordered table-striped">
-                <thead class="table-light">
+            <table class="table table-hover table-striped align-middle" id="sensorTable">
+                <thead class="table-dark">
+                    {{-- <div class="card shadow-sm">
+                        <div class="card-body table-responsive">
+                            <table class="table table-bordered table-striped
+                                <thead class="table-light text-center align-middle"> --}}
                     <tr>
                         <th>#Case ID</th>
                         <th>Substation Name</th>
-                        <th>Switchgear  Panel</th>
+                        <th>Switchgear/Panel</th>
                         <th>Sensor Tag</th>
                         <th>Report By</th>
-                        {{-- <th>Title</th> --}}
                         <th>Description</th>
-                        <th>Status</th>
+                        <th>Report Status</th>
                         <th>Report Date</th>
                         <th>Resolved Time</th>
                         <th>Downtime Duration</th>
-                        {{-- <th>Remarks</th> --}}
                         <th>Actions</th>
                     </tr>
                 </thead>
